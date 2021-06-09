@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react'
 import Alert from 'react-bootstrap/Alert'
 import NavBar from './Components/navbar.js'
 import AdminSurveysList from './Components/AdminSurveysList.js'
-import AdminModifySurvey from './Components/AdminModifySurvey.js'
+import AdminSurvey from './Components/AdminSurvey.js'
 import CreateSurvey from './Components/CreateSurvey.js'
 import UserSurveysList from './Components/UserSurveysList.js'
 import CreateSurvey from './Components/UserFillInSurvey.js'
@@ -29,7 +29,7 @@ function App() {
     const checkAuth = async () => {
         let res = await API.getAdminInfo();
         //setLoggedIn(true);
-        await setAdmin(res.name);
+        await setAdmin(res.admin);
     };
     checkAuth();
   }, []);
@@ -69,13 +69,14 @@ function App() {
   }
   }
 
-  const getSurveyResults = async (survey) => {
-    let surveyResults= await API.getSurveyResults(survey);
-    return surveyResults;
+  const getSurveyResults = async (surveyid) => {
+    let surveyResults= await API.getSurveyResults(surveyid);
+    return ArrayOf(surveyResults);
   }
 
-  const findSurveyToComplete = (surveyid) => {
-    return surveysToComplete.find(s => s.id === surveyid);
+  const findSurveyStructure = (surveyid) => {
+    let surveyQuestions= await API.getSurveyQuestions(surveyid);
+    return ArrayOf(surveyQuestions);
   } 
 
   const addSurvey = (newSurvey) => {
@@ -94,6 +95,10 @@ function App() {
     }
   }
 
+  const getSurveyTitle= (currentsurveyid) => {
+    return surveysToComplete.filter((s)=>{s.surveyid === currentsurveyid}).stitle;
+  }
+
   const surveysUpdated = ()=>setUpdateSurveys(t=>!t);
 
     // loggedIn={loggedIn} LINE 98
@@ -101,13 +106,16 @@ function App() {
     <Router>
       <Container fluid>
         <NavBar logout={doLogout} logged={admin} /> 
+
         <Row>
-        {message && <Row>
-                      <Col sm={{ span: 4, offset: 4 }} >
-                          <Alert variant={message.type} onClose={() => setLoginMessage(null)} dismissible>{message.msg}</Alert>
-                      </Col>
-                  </Row>}
+        {message && 
+            <Row>
+                <Col sm={{ span: 4, offset: 4 }} >
+                    <Alert variant={message.type} onClose={() => setLoginMessage(null)} dismissible>{message.msg}</Alert>
+                </Col>
+            </Row>}
         </Row>
+
         <Row>
           <Switch>
 
@@ -131,19 +139,19 @@ function App() {
                 !admin ? <Redirect to="/admin/login" /> :
                 <>
                   <Col>
-                  <AdminSurveysList surveys={submittedSurveys}/>
+                  <AdminSurveysList surveys={submittedSurveys} />
                   </Col>
                 </>
               }
             />
 
-            <Route exact path="/admin/:currentsurvey"
+            <Route exact path="/admin/:currentsurveyid"
               render={()=>
                 //!loggedIn ? <Redirect to="/admin/login" /> :
                 !admin ? <Redirect to="/admin/login" /> :
                 <>
                   <Col>
-                    <AdminModifySurvey results={getSurveyResults(currentsurvey)} surveyStructure={findSurveyToComplete(currentsurvey)} />
+                    <AdminSurvey responses={getSurveyResults(currentsurveyid)} surveytitle={getSurveyTitle(currentsurveyid)} questions={findSurveyStructure(currentsurveyid)} />
                   </Col>
                 </>
               }
@@ -172,11 +180,11 @@ function App() {
               }
             />
 
-            <Route exact path="/AllSurveys/:currentsurvey"
+            <Route exact path="/AllSurveys/:currentsurveyid"
               render={()=>
                 <>
                   <Col>
-                    <UserFillInSurvey survey={findSurveyToComplete(currentsurvey)} fillIn={fillInSurvey}/>
+                    <UserFillInSurvey surveyTitle={getSurveyTitle(currentsurveyid)} questions={findSurveyStructure(currentsurveyid)} fillIn={fillInSurvey}/>
                   </Col>
                 </>
               }

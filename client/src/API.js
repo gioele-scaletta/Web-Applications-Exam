@@ -18,6 +18,7 @@ async function loadSurveysToComplete(surveysToComplete){
     }
 }
 
+//HERE I ALSO NEED N OF USERS WHO SUBMITTED A SURVEY
 async function loadSubmittedSurveys(submittedSurveys, admin){
 
     const response = await fetch(BASEURL + '/submittedSurveys', {
@@ -37,19 +38,40 @@ async function loadSubmittedSurveys(submittedSurveys, admin){
 
 async function getSurveyResults(survey){
 
-    const response = await fetch(BASEURL + '/surveyResults', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(survey)
-    });
+  const response = await fetch(BASEURL + '/surveyResults', {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(survey)
+  });
+
     const Json = await response.json();
     if (response.ok) {
       return Json.map((s) => Object.assign({}, s));
     } else {
       throw Json;  // an object with the error coming from the server
     }
+
+}
+
+async function getSurveyQuestions(survey){
+
+  const response = await fetch(BASEURL + '/surveyQuestions', {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(survey)
+  });
+
+  const Json = await response.json();
+  if (response.ok) {
+    return Json.map((s) => Object.assign({}, s));
+  } else {
+    throw Json;  // an object with the error coming from the server
+  }
+
 
 }
 
@@ -115,5 +137,5 @@ async function login(credentials) {
   }
   
   
-  const API = {login, getAdminInfo,logout}
+  const API = {login, getAdminInfo,logout, sendSurvey, addSurvey, getSurveyResults, loadSubmittedSurveys,getSurveyQuestions, loadSurveysToComplete}
   export default API 
