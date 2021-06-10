@@ -1,3 +1,5 @@
+import AdminSurvey from "./AdminSurvey";
+
 const CreateSurvey = function(props){
 
     let [questions, setQuestions] = useState(undefined);
@@ -11,10 +13,11 @@ const CreateSurvey = function(props){
 
         if(ope){
             o=1;
-        } esle{
+        } else{
             o=0;
         }
-        let q={stitle: title, qnum: id, qtext:text, open: o, optional: opt, single:sing};
+        
+        let q={qnum: id, qtext:text, open: o, optional: opt, single:sing};
         setQuestions((exs) => exs.filter(ex => ex.num !== q.qnum))
         setQuestions(oldAnswers => [...oldAnswers, q]);
         setNum(num+1);
@@ -22,11 +25,13 @@ const CreateSurvey = function(props){
     }
 
     const handleSubmit = (event) => {
-        event.preventDefault();
+        //event.preventDefault();
         let questionsToBeSent = [];
+        let n={Title: title, ad:props.admin.id}
+        questionsToBeSent.push(n);
         answers.forEach(a=>{
             questionsToBeSent.push(a);
-        }).then(props.(questionsToBeSent));
+        }).then(props.addSurvey(questionsToBeSent));
         //MANCA VALIDATION
     };
 

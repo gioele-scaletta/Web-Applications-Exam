@@ -1,13 +1,16 @@
+import Form from'react-bootstrap/Form'
+import { useState, useEffect } from 'react'
+
 
 const CloseAnswerForm = function(props){
 
-    const Question = prop.question.split("|");
+    const Question = props.question.split("|");
  
     let Response=[];
     let text='';
 
     if(props.response)
-    Response = prop.response.split("|")
+    Response = props.response.split("|")
 
 
     const Check = function (checked, index) {
@@ -63,7 +66,7 @@ const CustomCheck = function (props) {
     },[checked])
 
     return (
-        <Form.Check defaultChecked={checked} onClick={(t)=>setChecked(!t)} type="checkbox" label={q}/>
+        <Form.Check defaultChecked={checked} onClick={(t)=>setChecked(!t)} type="checkbox" label={props.q}/>
     );
 }
 

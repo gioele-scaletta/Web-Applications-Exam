@@ -1,9 +1,13 @@
+import Form from'react-bootstrap/Form'
+import { useState, useEffect } from 'react'
+
 
 const OpenAnswerForm = function(props){
 
     const [text, setText] = useState(undefined);
 
     useEffect(() => {
+        let timeout;
         clearTimeout(timeout);
         timeout = setTimeout(() => {  
             // After 2 seconds make login messsage disappear

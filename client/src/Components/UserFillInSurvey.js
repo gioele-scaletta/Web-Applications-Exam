@@ -1,5 +1,9 @@
 import OpenAnswerForm from './OpenAnswerForm.js'
 import CloseAnswerForm from './CloseAnswerForm.js'
+import Button from 'react-bootstrap/Button'
+import Row from 'react-bootstrap/Row'
+import Link from 'react'
+import {useState} from 'react'
 
 const UserFillInSurvey= function (props){
 
@@ -29,8 +33,8 @@ const UserFillInSurvey= function (props){
             {props.surveyTitle}
             </h1>
         </Row>
-        {ArrayOf(props.questions).sort((a,b)=>{if(a.num<b.num)return a;}).forEach((q) =>{
-            if(s.open)
+        {Array.of(props.questions).sort((a,b)=>{if(a.num<b.num)return a;}).forEach((q) =>{
+            if(q.open)
             return <OpenAnswerForm key={q.id} question={q.text} response={undefined} add={addResponse}
             />;
             else

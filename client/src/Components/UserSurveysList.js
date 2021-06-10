@@ -4,7 +4,7 @@ const UserSurveyList= function (props){
 
     return (<>
         {props.surveys.forEach((s) =>{
-            return <SurveyCard key={s.surveyid} title={s.sTitle} nusers={undefined}
+            return <SurveyCard key={s.survey_id} title={s.survey_title} nusers={undefined} set={props.set}
             />;
         }
         )}

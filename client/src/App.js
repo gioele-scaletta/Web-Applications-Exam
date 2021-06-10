@@ -1,5 +1,4 @@
 import './App.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import Container from 'react-bootstrap/Container'
 import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
@@ -11,7 +10,7 @@ import Alert from 'react-bootstrap/Alert'
 import NavBar from './Components/navbar.js'
 import AdminSurveysList from './Components/AdminSurveysList.js'
 import AdminSurvey from './Components/AdminSurvey.js'
-import CreateSurvey from './Components/CreateSurvey.js'
+import UserFillInSurvey from './Components/UserFillInSurvey.js'
 import UserSurveysList from './Components/UserSurveysList.js'
 import CreateSurvey from './Components/UserFillInSurvey.js'
 import API from './API.js'
@@ -24,6 +23,7 @@ function App() {
   const [updateSurveys, setUpdateSurveys] = useState(undefined);
   const [admin, setAdmin] = useState(undefined);
   const [loginmessage, setLoginMessage] = useState();
+  const [currentsurvey, setCurrentsurvey] = useState();
  
   useEffect(() => {
     const checkAuth = async () => {
@@ -35,10 +35,18 @@ function App() {
   }, []);
 
   useEffect(()=> {
-    //if(loggedIn) setSubmittedSurveys(await API.loadSubmittedSurveys(submittedSurveys, admin));
-    if(admin) setSubmittedSurveys(await API.loadSubmittedSurveys(submittedSurveys, admin));
-    
-    setSurveysToComplete(await API.loadSurveysToComplete(surveysToComplete));
+    const getSurveys = async () => {
+       //if(loggedIn) setSubmittedSurveys(await API.loadSubmittedSurveys(submittedSurveys, admin));
+    //const tmp = await API.loadSubmittedSurveys(admin);
+    if(admin) setSubmittedSurveys(await API.loadSubmittedSurveys(admin));
+    //const s=await API.loadSurveysToComplete();
+    setSurveysToComplete(await API.loadSurveysToComplete());
+    };
+    getSurveys()
+    .catch(err => {
+      setLoginMessage({msg: "Impossible to load ! Please, try again later...", type: 'danger'});
+      console.error(err);
+    });
   }, [updateSurveys])
 
   useEffect(() => {
@@ -48,6 +56,9 @@ function App() {
     }, 2000)
   }, [loginmessage]);
 
+  useEffect(()=>{
+    surveysUpdated();
+  }, [])
 
 
   const doLogin = async (credentials) => {
@@ -70,19 +81,24 @@ function App() {
   }
 
   const getSurveyResults = async (surveyid) => {
-    let surveyResults= await API.getSurveyResults(surveyid);
-    return ArrayOf(surveyResults);
+    const getSurveyRes = async ()=>{
+      let surveyResults= await API.getSurveyResults(surveyid);
+      return Array.of(surveyResults);
+    }
   }
 
   const findSurveyStructure = (surveyid) => {
-    let surveyQuestions= await API.getSurveyQuestions(surveyid);
-    return ArrayOf(surveyQuestions);
+    const findSurveyStruct = async ()=>{
+      let surveyQuestions= await API.getSurveyQuestions(surveyid);
+      return Array.of(surveyQuestions);
+    }
+
   } 
 
   const addSurvey = (newSurvey) => {
     if(newSurvey){
       API.addSurvey(newSurvey)
-      .then(()=>{surveysUpdated;})
+      .then(()=>{surveysUpdated()})
       .catch(err =>console.log(err));
     }
   }
@@ -90,16 +106,20 @@ function App() {
   const fillInSurvey = (surveyresponse) => {
     if(surveyresponse){
       API.sendSurvey(surveyresponse)
-      .then(()=>{surveysUpdated;})
+      .then(()=>{surveysUpdated()})
       .catch(err => console.log(err));
     }
   }
 
-  const getSurveyTitle= (currentsurveyid) => {
-    return surveysToComplete.filter((s)=>{s.surveyid === currentsurveyid}).stitle;
+  const newCurrentSurvey = (survey) =>{
+    setCurrentsurvey(survey);
   }
 
-  const surveysUpdated = ()=>setUpdateSurveys(t=>!t);
+  const getSurveyTitle= (currentsurveyid) => {
+    return surveysToComplete.filter((s)=>{return (s.surveyid === currentsurveyid);}).stitle;
+  }
+
+  const surveysUpdated = ()=> {setUpdateSurveys(t=>!t)};
 
     // loggedIn={loggedIn} LINE 98
   return (
@@ -108,10 +128,10 @@ function App() {
         <NavBar logout={doLogout} logged={admin} /> 
 
         <Row>
-        {message && 
+        {loginmessage && 
             <Row>
                 <Col sm={{ span: 4, offset: 4 }} >
-                    <Alert variant={message.type} onClose={() => setLoginMessage(null)} dismissible>{message.msg}</Alert>
+                    <Alert variant={loginmessage.type} onClose={() => setLoginMessage(null)} dismissible>{loginmessage.msg}</Alert>
                 </Col>
             </Row>}
         </Row>
@@ -139,7 +159,7 @@ function App() {
                 !admin ? <Redirect to="/admin/login" /> :
                 <>
                   <Col>
-                  <AdminSurveysList surveys={submittedSurveys} />
+                  <AdminSurveysList surveys={submittedSurveys} set={newCurrentSurvey} />
                   </Col>
                 </>
               }
@@ -151,7 +171,7 @@ function App() {
                 !admin ? <Redirect to="/admin/login" /> :
                 <>
                   <Col>
-                    <AdminSurvey responses={getSurveyResults(currentsurveyid)} surveytitle={getSurveyTitle(currentsurveyid)} questions={findSurveyStructure(currentsurveyid)} />
+                    <AdminSurvey responses={getSurveyResults(currentsurvey)} surveytitle={getSurveyTitle(currentsurvey)} questions={findSurveyStructure(currentsurvey.survey_id)} />
                   </Col>
                 </>
               }
@@ -163,7 +183,7 @@ function App() {
                 !admin ? <Redirect to="/admin/login" /> :
                 <>
                   <Col>
-                    <CreateSurvey addSurvey={addSurvey} />
+                    <CreateSurvey addSurvey={addSurvey} admin={admin} />
                   </Col>
                 </>
               }
@@ -174,7 +194,7 @@ function App() {
               render={()=>
                 <>
                   <Col>
-                    <UserSurveysList surveys={surveysToComplete}/>
+                    <UserSurveysList surveys={surveysToComplete} set={newCurrentSurvey}/>
                   </Col>
                 </>
               }
@@ -184,7 +204,7 @@ function App() {
               render={()=>
                 <>
                   <Col>
-                    <UserFillInSurvey surveyTitle={getSurveyTitle(currentsurveyid)} questions={findSurveyStructure(currentsurveyid)} fillIn={fillInSurvey}/>
+                    <UserFillInSurvey surveyTitle={getSurveyTitle(currentsurvey)} questions={findSurveyStructure(currentsurvey)} fillIn={fillInSurvey}/>
                   </Col>
                 </>
               }

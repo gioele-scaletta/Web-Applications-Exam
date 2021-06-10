@@ -1,3 +1,7 @@
+import Card from'react-bootstrap/Card'
+import { Link } from 'react';
+import Button from 'react-bootstrap/Button'
+
 const SurveyCard=function(props){
 
     if(props.nusers){
@@ -20,9 +24,8 @@ const SurveyCard=function(props){
             <Card.Img variant="top" src="holder.js/100px180" />
             <Card.Body>
                 <Card.Title>props.title</Card.Title>
-                <Card.Text>props.description</Card.Text>
                 <Link to = {"/AllSurveys/"+props.key} style={{ textDecoration: 'none' }}>
-                    <Button variant="primary"> Fill in survey </Button>
+                    <Button variant="primary" onClick={props.set(props.key)}> Fill in survey </Button>
                 </Link>
             </Card.Body>
             </Card>

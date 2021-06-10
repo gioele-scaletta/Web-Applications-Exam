@@ -1,14 +1,14 @@
-import dayjs from 'dayjs';
+
 const BASEURL = '/api';
 
-async function loadSurveysToComplete(surveysToComplete){
+async function loadSurveysToComplete(){
 
     const response = await fetch(BASEURL + '/surveysToComplete', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(surveysToComplete)
+        }//,
+        //body: JSON.stringify(surveysToComplete)
     });
     const Json = await response.json();
     if (response.ok) {
@@ -19,14 +19,14 @@ async function loadSurveysToComplete(surveysToComplete){
 }
 
 //HERE I ALSO NEED N OF USERS WHO SUBMITTED A SURVEY
-async function loadSubmittedSurveys(submittedSurveys, admin){
+async function loadSubmittedSurveys(admin){
 
     const response = await fetch(BASEURL + '/submittedSurveys', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(submittedSurveys)
+        body: JSON.stringify(admin)
     });
     const Json = await response.json();
     if (response.ok) {
@@ -36,14 +36,14 @@ async function loadSubmittedSurveys(submittedSurveys, admin){
     }
 }
 
-async function getSurveyResults(survey){
+async function getSurveyResults(survey/*, admin*/){
 
   const response = await fetch(BASEURL + '/surveyResults', {
       method: 'GET',
       headers: {
           'Content-Type': 'application/json',
       },
-      body: JSON.stringify(survey)
+      body: JSON.stringify(survey)//, JSON.stringify(admin)
   });
 
     const Json = await response.json();
@@ -71,9 +71,8 @@ async function getSurveyQuestions(survey){
   } else {
     throw Json;  // an object with the error coming from the server
   }
-
-
 }
+
 
 
 async function addSurvey(newSurvey){
@@ -96,6 +95,9 @@ async function sendSurvey(surveyresponse){
     })
 
 }
+
+
+
 
 
 async function login(credentials) {
