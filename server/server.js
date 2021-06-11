@@ -64,36 +64,35 @@ app.use(passport.session());
 //Get all surveys (just title and id) to make normal user choose (no need for authentication)
 app.get('/api/surveysToComplete', (req,res) =>{
   dao.loadAllSurveys()
-  .then(((s) => { res.json(s); }))
-  .catch((err)=>{res.status(500).json(err);});
+  .then(((s) => {res.json(s); }))
+  .catch((err)=>{res.status(500).json(err)});
 });
 
 //Get all surveys created by a certain admin together with the number of user who completed it
-app.get('/api/submittedSurveys', isLoggedIn, (req,res)=>{
-  dao.loadAdminSurveys(req.admin.id)
+app.get('/api/submittedSurveys', isLoggedIn, async (req,res)=>{
+  dao.loadAdminSurveys(req.user.id)
   .then(((s) => { res.json(s); }))
-  .catch((err)=>{res.status(500).json(err);});
+  .catch((err)=>{console.log(err); res.status(500).json(err);});
 });
 
 //Get all the responses for a certain survey (need to check loig in and also that the right admin is requesting the survey) 
 //(both authenticatin and authorization)
-app.get('/api/surveyResults', isLoggedIn, (req,res)=>{
-  dao.loadSurveyResponses(req.survey, req.admin)
+app.get('/api/surveyResults/:survey', isLoggedIn, (req,res)=>{
+  dao.loadSurveyResponses(req.params.survey, req.admin)
   .then(((s) => { res.json(s); }))
   .catch((err)=>{res.status(500).json(err);});
 });
 
 //Get the question for a specific survey when a user wants to complete it. 
 //Since this function can be needed even when no admin is logged LOggedIn is not checked
-app.get('/api/surveyQuestions', (req,res)=>{
-  dao.loadSurveyQuestions(req.survey)
+app.get('/api/surveyQuestions/:survey', (req,res)=>{
+  dao.loadSurveyQuestions(req.params.survey)
   .then(((s) => { res.json(s); }))
   .catch((err)=>{res.status(500).json(err);});
 });
 
 //Add a new survey type (need to be logged in) 
 app.post('/api/addSurvey', isLoggedIn, (req,res)=>{
-  let title;
   let s_id;
 
   req.body.forEach(async (q, index)=>{
@@ -110,12 +109,14 @@ app.post('/api/addSurvey', isLoggedIn, (req,res)=>{
   });
 });
 
-app.post('/api/sendSurvey', (req,res)=>{
+app.post('/api/sendSurvey', async (req,res)=>{
+  let n= await dao.getMaxResponse();
+
+  n++;
   req.body.forEach(async (q, index)=>{
     try{
-    //forse si può provare a usare variabile cnt=await
-    //n= await dao.getMaxResponse();
-    cnt = await dao.addResponse(cnt+1, q.surveyid, q.qnum, q.response);
+
+    await dao.addResponse(n, q.surveyid, q.qnum, q.response);
     }
     catch(error){
       res.status(500).json(error);

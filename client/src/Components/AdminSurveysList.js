@@ -3,10 +3,10 @@ import SurveyCard from "./SurveyCard.js"
 const AdminSurveyList= function (props){
 
     return (<>
-        {props.surveys.forEach((s) =>{
-            return <SurveyCard key={s.surveyid} title={s.stitle} nusers={s.nusers} set={props.set}
+        {props.surveys.map((s) =>
+            <SurveyCard key={s.survey_id} id={s.survey_id} title={s.survey_title} nusers={s.nusers} setad={props.setad}
             />
-        }
+        
         )}
     </>);
 }

@@ -2,36 +2,44 @@ import OpenAnswerForm from './OpenAnswerForm.js'
 import CloseAnswerForm from './CloseAnswerForm.js'
 import { useState } from 'react'
 import Button from 'react-bootstrap/Button'
-import Row from 'react-bootstrap/Row'
 
-import { Link } from 'react';
+import Row from 'react-bootstrap/Row'
+import { Link, useParams} from 'react-router-dom';
 
 //manca seleziona e filtra by users
 const AdminSurvey= function (props){
 
     //GET list of users who provided responses to survey
-    const [users, setUsers] = useState(uniq(props.responses.map((r)=>{return r.rnum;})));
+    const [users, setUsers] = useState(uniq(props.responses.map((r) => r.rnum)));
     const [currentUser, setCurrentuser] = useState(0)
+
+    const next= function(){
+        setCurrentuser(currentUser+1);
+    }
 
     return (<>
         <Row>
             <h1>
-            {props.surveyTitle}
+            {props.surveytitle}
+            {console.log(props.responses)}
             </h1>
         </Row>
-        {Array.of(props.questions).sort((a,b)=>{if(a.qnum<b.qnum)return a;}).forEach((q, index) =>{
-            if(q.open)
-            return <OpenAnswerForm key={q.qnum} question={q.q} response={Array.of(props.responses).filter((r)=>{return (r.rnum===users[currentUser] && r.qnum===q.qnum);}).sort((a,b)=>{if(a.num<b.num)return a;}).response}
-            />;
-            else
-            return <CloseAnswerForm key={q.qnum} question={q.text} optional={q.optional} single={q.single} response={Array.of(props.responses).filter((r)=>{return (r.rnum===users[currentUser] && r.qnum===q.qnum);}).sort((a,b)=>{if(a.num<b.num)return a;}).response}
-            />;
-        }
+        {props.questions.sort((a,b) => (a.qnum<b.qnum) ? a : b).map( (q) => q.open ?
+            <OpenAnswerForm key={q.qnum} id={q.qnum} add={undefined} question={q.qtext} response={props.responses.filter( (r) => (r.rnum===users[currentUser] && r.qnum===q.qnum)).map((r)=>r.rtext)} 
+            />
+            :
+            <CloseAnswerForm  key={q.qnum} id={q.qnum} question={q.qtext} optional={q.optional} single={q.single} response={props.responses.filter( (r) => (r.rnum===users[currentUser] && r.qnum===q.qnum)).map((r)=>r.rtext)}
+        
+            />
         )}
-        <Row>
-            <Link to="/admin"><Button>Back </Button> </Link> 
-        </Row>
-        </>);
+        
+    
+        <Button onClick={next}>Next</Button> 
+        <Link to="/admin"> <Button variant='secondary'> Back</Button> </Link>
+
+        </>
+     
+        );
 }
 
 function uniq(a) {
@@ -41,3 +49,5 @@ function uniq(a) {
 }
 
 export default AdminSurvey;
+
+

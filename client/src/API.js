@@ -1,18 +1,14 @@
-
+import Survey from './model/Survey'
 const BASEURL = '/api';
 
 async function loadSurveysToComplete(){
 
-    const response = await fetch(BASEURL + '/surveysToComplete', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        }//,
-        //body: JSON.stringify(surveysToComplete)
-    });
+    const response = await fetch(BASEURL + '/surveysToComplete');
+
     const Json = await response.json();
     if (response.ok) {
-      return Json.map((s) => Object.assign({}, s));
+
+      return Json.map((s) => Object.assign({}, s))//Survey.from(s));
     } else {
       throw Json;  // an object with the error coming from the server
     }
@@ -21,13 +17,7 @@ async function loadSurveysToComplete(){
 //HERE I ALSO NEED N OF USERS WHO SUBMITTED A SURVEY
 async function loadSubmittedSurveys(admin){
 
-    const response = await fetch(BASEURL + '/submittedSurveys', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(admin)
-    });
+    const response = await fetch(BASEURL + '/submittedSurveys' );
     const Json = await response.json();
     if (response.ok) {
       return Json.map((s) => Object.assign({}, s));
@@ -38,13 +28,7 @@ async function loadSubmittedSurveys(admin){
 
 async function getSurveyResults(survey/*, admin*/){
 
-  const response = await fetch(BASEURL + '/surveyResults', {
-      method: 'GET',
-      headers: {
-          'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(survey)//, JSON.stringify(admin)
-  });
+  const response = await fetch(BASEURL + '/surveyResults/'+survey);
 
     const Json = await response.json();
     if (response.ok) {
@@ -57,14 +41,8 @@ async function getSurveyResults(survey/*, admin*/){
 
 async function getSurveyQuestions(survey){
 
-  const response = await fetch(BASEURL + '/surveyQuestions', {
-    method: 'GET',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(survey)
-  });
-
+  const response = await fetch(BASEURL + '/surveyQuestions/'+ survey);
+  
   const Json = await response.json();
   if (response.ok) {
     return Json.map((s) => Object.assign({}, s));
@@ -110,7 +88,7 @@ async function login(credentials) {
     });
     if(response.ok) {
       const user = await response.json();
-      return user.name;
+      return user.username;
     }
     else {
         const errDetails = await response.text();

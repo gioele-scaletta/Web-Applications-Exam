@@ -3,11 +3,10 @@ import { useState } from 'react'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import Alert from 'react-bootstrap/Alert'
+import { useFormik } from 'formik'
+import * as Yup from 'yup'
 import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
-import { useFormik  } from 'formik'
-import * as Yup from 'yup'
-
 
 
 
@@ -68,4 +67,3 @@ const LoginForm = function(props) {
 }
 
 export default LoginForm;
-

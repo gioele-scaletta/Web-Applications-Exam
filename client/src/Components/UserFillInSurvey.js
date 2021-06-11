@@ -2,49 +2,60 @@ import OpenAnswerForm from './OpenAnswerForm.js'
 import CloseAnswerForm from './CloseAnswerForm.js'
 import Button from 'react-bootstrap/Button'
 import Row from 'react-bootstrap/Row'
-import Link from 'react'
+import Col from 'react-bootstrap/Row'
+import { Redirect } from 'react-router';
+
+import { Link, useParams} from 'react-router-dom';
 import {useState} from 'react'
 
-const UserFillInSurvey= function (props){
+function  UserFillInSurvey(props){
+    
 
-    let [answers, setAnswers] = useState(undefined);
+    let [answers, setAnswers] = useState([]);
+    let [submitted, setSubmitted] = useState(false);
 
     const addResponse = (a, id) =>{
 
         let q={qnum: id, response: a};
-        setAnswers((exs) => exs.filter(ex => ex.num !== q.qnum))
+        setAnswers((exs) =>{return exs.filter((ex) => (ex.qnum !== q.qnum));});
         setAnswers(oldAnswers => [...oldAnswers, q]);
 
     }
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
         let answersToBeSent = [];
-        answers.forEach(a=>{
-            answersToBeSent.push({ surveyid: props.surveyid, qnum: a.id, response: a.response });
-        }).then(props.fillIn(answersToBeSent));
+        await answers.map((a)=>
+        answersToBeSent.push({ surveyid: props.surveyid, qnum: a.qnum, response: a.response }));
+        console.log(answersToBeSent);
+        await props.fillIn(answersToBeSent);
+        setSubmitted(true);
         //MANCA VALIDATION
     };
 
 
     return (<>
+        {submitted ? <Redirect to="/AllSurveys" /> : <>
         <Row>
             <h1>
-            {props.surveyTitle}
+            {props.surveytitle}
             </h1>
         </Row>
-        {Array.of(props.questions).sort((a,b)=>{if(a.num<b.num)return a;}).forEach((q) =>{
-            if(q.open)
-            return <OpenAnswerForm key={q.id} question={q.text} response={undefined} add={addResponse}
-            />;
-            else
-            return <CloseAnswerForm key={q.id} question={q.text} optional={q.optional} single={q.single} response={undefined} add={addResponse}
-            />;
-        }
+        {props.questions.sort((a,b) => (a.qnum<b.qnum) ? a : b).map( (q) => q.open ?
+            <OpenAnswerForm key={q.qnum} id={q.qnum} question={q.qtext} response={undefined} add={addResponse}
+            />
+            :
+            <CloseAnswerForm key={q.qnum} id={q.qnum} question={q.qtext} optional={q.optional} single={q.single} response={undefined} add={addResponse}
+            />
         )}
-        <Row>
-        <Link to="/AllSurveys"><Button onClick={handleSubmit}>Submit</Button></Link> <Link to="/AllSurveys"><Button variant='secondary'>Cancel</Button></Link>
-        </Row>
+        
+    
+        <Button onClick={handleSubmit} >Submit</Button> 
+        <Link to="/AllSurveys"><Button variant='secondary'>Cancel</Button> </Link>
+
+        </>
+        }
+           
     </>);
 }
 

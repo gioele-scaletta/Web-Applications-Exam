@@ -1,15 +1,18 @@
 import SurveyCard from "./SurveyCard.js"
+import Row from 'react-bootstrap/Row'
 
-const UserSurveyList= function (props){
+
+
+function UserSurveyList (props){
 
     return (<>
-        {props.surveys.forEach((s) =>{
-            return <SurveyCard key={s.survey_id} title={s.survey_title} nusers={undefined} set={props.set}
-            />;
-        }
-        )}
-    </>);
+        {props.surveys.map((s) => 
+            <SurveyCard key={s.survey_id} id={s.survey_id} title={s.survey_title} nusers={undefined} setus={props.setus}
+            />
+
+        )}</>
+    );
 }
 
 
-export default UserSurveyList
+export {UserSurveyList}

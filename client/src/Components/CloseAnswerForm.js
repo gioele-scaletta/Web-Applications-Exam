@@ -4,28 +4,34 @@ import { useState, useEffect } from 'react'
 
 const CloseAnswerForm = function(props){
 
-    const Question = props.question.split("|");
+    let Question =[];
+    Question = String(props.question).split("|");
  
     let Response=[];
-    let text='';
+    const [tmp, setTmp]=useState();
+    
 
     if(props.response)
-    Response = props.response.split("|")
+    Response = String(props.response).split("|");
 
 
-    const Check = function (checked, index) {
+    const  Check= async function (checked, index) {
+        if(tmp)
+        Response=tmp.split("|");
 
-        Response= text.split('|')
-        Response[index]=checked ? 1 : 0;
+        if(checked)
+        Response[index-1]=1;
+        else
+        Response[index-1]=0;
 
-        text='';
+        let text='';
 
-        Response.forEach((r)=>{
-            text.concat(r);
-            text.concat("|");
-        })
+        for (let i=0; i<Response.length;i++)
+        text=text.concat(Response[i].toString(), "|");
+           
+        setTmp(text.substring(0,text.length-1));
         
-        props.add(text, props.key);
+        props.add(text.substring(0,text.length-1), props.id);
          
     };
 
@@ -35,9 +41,10 @@ const CloseAnswerForm = function(props){
             <Form>
             <Form.Group controlId="exampleForm.ControlTextarea1">
                 <Form.Label>{Question[0]}</Form.Label>
-                {Question.forEach((q, index)=>{if (index!=0) return (
-                <Form.Check defaultChecked={Response[index]===1} type="checkbox" label={q}/>
-                );})}
+                {Question.map((q, index)=>(index!=0) ? 
+                <Form.Check checked={Response[index-1]==1} type="checkbox" label={q}/> :
+                null
+                )}
             </Form.Group>
             </Form>
         );
@@ -46,8 +53,8 @@ const CloseAnswerForm = function(props){
             <Form>
             <Form.Group controlId="exampleForm.ControlTextarea1">
                 <Form.Label>{Question[0]}</Form.Label>
-                {Question.forEach((q, index)=>{Response[index]=0; if (index!=0) return (
-                <CustomCheck q={q} index={index} Check={Check}/>
+                {Question.map((q, index)=>{Response[index-1]=0; if (index!=0) return (
+                <CustomCheck q={q} key={index} index={index} Check={Check} write={true}  />
                 );})}
             </Form.Group>
             </Form>
@@ -62,12 +69,15 @@ const CustomCheck = function (props) {
     const [checked, setChecked]= useState(false);
 
     useEffect(() => {
-        props.Check(checked, props.index);
-    },[checked])
+        props.Check(checked, props.index);}
+    ,[checked])
 
-    return (
-        <Form.Check defaultChecked={checked} onClick={(t)=>setChecked(!t)} type="checkbox" label={props.q}/>
-    );
+    return ( 
+        
+        <Form.Check value={checked} onChange={(ev) => setChecked(ev.target.checked)}  type="checkbox" label={props.q}/>
+       
+        
+ );
 }
 
 

@@ -13,6 +13,7 @@ exports.loadAllSurveys = () => {
                 return;
             }
             const surveysToComplete = rows.map((r) => ({survey_id: r.survey_id, survey_title: r.survey_title}));
+            console.log(surveysToComplete[0].survey_id);
         resolve(surveysToComplete);
         });
     });
@@ -21,7 +22,7 @@ exports.loadAllSurveys = () => {
 //anche n users!
 exports.loadAdminSurveys = (id) => {
     return new Promise((resolve, reject) =>{
-        const sql = 'SELECT survey_id, survey_title, COUNT (DISTINCT response_num) AS nusers FROM SURVEYS AS S, RESPONSES AS R WHERE S.survey_id=R.survey_id AND admin_id=? GROUP BY survey_id, survey_title';
+        const sql = 'SELECT S.survey_id, S.survey_title, COUNT (DISTINCT R.response_num) AS nusers FROM SURVEYS AS S, RESPONSES AS R WHERE S.survey_id=R.survey_id AND S.admin_id=? GROUP BY S.survey_id, S.survey_title';
         db.all(sql, [id], (err, rows)=>{
             if(err){
                 reject(err);
@@ -56,7 +57,7 @@ exports.loadSurveyQuestions = (sid) =>{
                 reject(err);
                 return;
             }
-            const surveyResults = rows.map((r) => ({survey_id: r.survey_id, qnum: r.question_num,  qtext: r.question_text, open: r.open, optional: r.optional, single: r.choices}));
+            const surveyResults = rows.map((r) => ({survey_id: r.survey_id, qnum: r.question_number,  qtext: r.question_text, open: r.open, optional: r.optional, single: r.choices}));
         resolve(surveyResults);
         });
     }); 
@@ -93,6 +94,7 @@ exports.addQuestion = (s_id, qnum, qtext, open, optional, single)=>{
 
 //need to take care of res number creation
 exports.addResponse = (n, surveyid, qnum, response) =>{
+ 
     return new Promise((resolve, reject) =>{
         const sql = 'INSERT INTO RESPONSES(survey_id, question_num, response_text, response_num) VALUES(?,?,?,?)';
         db.all(sql, [surveyid, qnum, response, n], (err, rows)=>{
@@ -101,6 +103,20 @@ exports.addResponse = (n, surveyid, qnum, response) =>{
                 return;
             }
         resolve(this.lastID);
+        });
+    }); 
+};
+
+exports.getMaxResponse =() =>{
+    return new Promise((resolve, reject) =>{
+        const sql = 'SELECT COALESCE(MAX(response_num),0) as max FROM RESPONSES';
+        db.all(sql, (err, rows)=>{
+            if(err){
+                reject(err);
+                return;
+            }
+            
+        resolve(rows[0].max);
         });
     }); 
 };

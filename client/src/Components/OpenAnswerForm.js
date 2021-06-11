@@ -3,34 +3,37 @@ import { useState, useEffect } from 'react'
 
 
 const OpenAnswerForm = function(props){
-
-    const [text, setText] = useState(undefined);
+    
+    const [text, setText] = useState();
 
     useEffect(() => {
+        if(!props.response){
         let timeout;
         clearTimeout(timeout);
         timeout = setTimeout(() => {  
             // After 2 seconds make login messsage disappear
-            props.add(text, props.key);
+            props.add(text, props.id);
           }, 500)
+        }
     }, [text])
 
 
     if(props.response){
-    return(
+    return(<>
+        {console.log(props.rtext)}
         <Form>
-        <Form.Group controlId="exampleForm.ControlTextarea1">
+        <Form.Group >
             <Form.Label>{props.question}</Form.Label>
-            <Form.Control type="text" placeholder={props.response} readOnly rows={4}/>
+            <Form.Control type="text" placeholder={props.response} readOnly />
         </Form.Group>
-        </Form>
+        </Form></>
     );
     } else {
     return(
         <Form>
-        <Form.Group controlId="exampleForm.ControlTextarea1">
+        <Form.Group>
             <Form.Label>{props.question}</Form.Label>
-            <Form.Control as="textarea" value={text} rows={4} />
+            <Form.Control as="textarea" value={text} onChange={ev=>setText(ev.target.value)} rows={4} />
         </Form.Group>
         </Form>
     );
