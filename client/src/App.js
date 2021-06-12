@@ -14,9 +14,10 @@ import AdminSurveysList from './Components/AdminSurveysList.js'
 import AdminSurvey from './Components/AdminSurvey.js'
 import UserFillInSurvey from './Components/UserFillInSurvey.js'
 import {UserSurveyList} from './Components/UserSurveysList.js'
-import CreateSurvey from './Components/UserFillInSurvey.js'
+import CreateSurvey from './Components/CreateSurvey.js'
 import API from './API.js'
-import Survey from './model/Survey.js'
+import Button from 'react-bootstrap/Button'
+
 
 
 function App() {
@@ -26,11 +27,13 @@ function App() {
   const [Responses, setResponses] = useState([]);
   const [Questions, setQuestions] = useState([]);
   const [admin, setAdmin] = useState(undefined);
+  const [id, setId] = useState();
   const [loginmessage, setLoginMessage] = useState();
   const [readsurveyid, setReadsurveyid]= useState(undefined);
   const [fillinsurveyid, setFillinsurveyid]= useState(undefined);
   const [title, setTitle] = useState();
   const [updateSurveys, setUpdateSurveys] = useState(undefined);
+  const [navfilter, setNavfilter] = useState()
 
  
   useEffect(() => {
@@ -39,13 +42,16 @@ function App() {
         let res = await API.getAdminInfo();
         //setLoggedIn(true);
 
-        await setAdmin(res.admin);
+        await setAdmin(res.username);
+        await setId(res.id);
     }catch {
         await setAdmin(undefined);
     }};
     checkAuth();
   }, []);
 
+
+  //magari da splittare quando cambia admin load only surveysubmitted
   useEffect(()=> {
     const getSurveys = async () => {
        //if(loggedIn) setSubmittedSurveys(await API.loadSubmittedSurveys(submittedSurveys, admin));
@@ -126,6 +132,7 @@ function App() {
 
   const FillSurvey = async (survey) =>{
     await setQuestions([]);
+    await setFillinsurveyid('');
      await setFillinsurveyid(survey);
     
     //await setUpdatef(s=>!s);
@@ -134,6 +141,8 @@ function App() {
   const CheckSurvey = async (survey) =>{
     await setQuestions([]);
     //await setResponses([]);
+    await setFillinsurveyid('');
+    await setReadsurveyid('');
     await setReadsurveyid(survey);
     await setFillinsurveyid(survey);
     //await setUpdater(s=>!s);
@@ -145,13 +154,15 @@ function App() {
 
   const surveysUpdated = ()=> {setUpdateSurveys(t=>!t)};
 
+  const filterCards = (text)=> {setNavfilter(text)};
+
     // loggedIn={loggedIn} LINE 98
   return (
     <Router>
-      <Container fluid className="m-0 p-0">
-      <Row className="m-0 p-0">
+      <Container fluid >
+      <Row className="ml-5 p-0">
                     <Col className="m-0 p-0">
-                        <NavBar logout={doLogout} logged = {admin} login={doLogin}/>
+                        <NavBar filter={filterCards} logout={doLogout} logged = {admin} login={doLogin}/>
                     </Col>
                 </Row>
 
@@ -187,15 +198,17 @@ function App() {
                 //!loggedIn ? <Redirect to="/admin/login" /> :
                 !admin ? <Redirect to="/admin/login" /> :
                 <>
-                  <Col>
-                  <AdminSurveysList surveys={submittedSurveys} setad={CheckSurvey} />
-                  </Col>
-                  <Link to ='/admin/createsurvey'><PlusCircleFill color="blue" size={40} /> </Link>
+                
+                  <AdminSurveysList filter={navfilter} surveys={submittedSurveys} setad={CheckSurvey} />
+                  <br></br>
+                  <br></br>
+                  <br></br>
+                  <Link to ='/admin/createsurvey'><Button> Create new Survey</Button> </Link>
                 </>
               }
             />
 
-            <Route exact path="/admin/:survey"
+            <Route exact path="/admin/surveyresults/:survey"
               render={()=>
                 //!loggedIn ? <Redirect to="/admin/login" /> :
                 !admin ? <Redirect to="/admin/login" /> :
@@ -212,9 +225,10 @@ function App() {
                 //!loggedIn ? <Redirect to="/admin/login" /> :
                 !admin ? <Redirect to="/admin/login" /> :
                 <>
-                  <Col>
-                    <CreateSurvey addSurvey={addSurvey} admin={admin} />
+                 <Col>
+                    <CreateSurvey addSurvey={addSurvey} admin={id}  />
                   </Col>
+                 
                 </>
               }
             />   
@@ -223,18 +237,18 @@ function App() {
             <Route exact path="/AllSurveys"
               render={()=>
                 <>
-                  <Col>
-                    <UserSurveyList surveys={surveysToComplete} setus={FillSurvey}/>
-                  </Col>
+                  
+                    <UserSurveyList filter={navfilter} surveys={surveysToComplete} setus={FillSurvey}/>
+                  
                 </>
               }
             />
 
-            <Route exact path="/AllSurveys/:survey"
+            <Route exact path="/AllSurveys/fillinsurvey/:survey"
               render={()=>
                 <>
                   <Col>
-                    <UserFillInSurvey surveyid={fillinsurveyid} surveytitle={title} questions={Questions} fillIn={fillInSurvey}/>
+                  <UserFillInSurvey surveyid={fillinsurveyid} surveytitle={title} questions={Questions} fillIn={fillInSurvey}/>
                   </Col>
                 </>
               }

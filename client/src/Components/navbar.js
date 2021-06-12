@@ -1,12 +1,14 @@
 import Navbar from 'react-bootstrap/Navbar'
+import Nav from 'react-bootstrap/Nav'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import FormControl from 'react-bootstrap/FormControl'
-import {PersonCircle} from 'react-bootstrap-icons'
-import {CardChecklist} from 'react-bootstrap-icons'
+import {Filter, PersonCircle} from 'react-bootstrap-icons'
+import {CardChecklist, BarChartFill} from 'react-bootstrap-icons'
 import {NavDropdown} from "react-bootstrap";
 import { Redirect } from 'react-router';
 import { useEffect, useState } from 'react'
+import {Link} from 'react-router-dom'
 
 const NavBar = function (props) {
 
@@ -17,19 +19,24 @@ const NavBar = function (props) {
             <>
         {tologin ? <Redirect to="/admin/login"/> :
 
-        <Navbar bg="dark" variant="dark" expand="lg">
+        <Navbar  bg="dark" variant="dark" expand="lg">
 
-            <CardChecklist color="white" size={50} className="mr-5"/>
-            <Navbar.Brand href="/">Survey Manager</Navbar.Brand>
+            <BarChartFill color="white" size={50} className="m-2"/>
+            <Navbar.Brand >Survey Manager</Navbar.Brand>
+            <Link to ='/AllSurveys'> <Nav.Item className="m-3" >Home</Nav.Item></Link>
+         
+            <Link to ='/admin'> <Nav.Item >Admin</Nav.Item></Link>
+           
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse className="justify-content-end" id="basic-navbar-nav">
                 <Form inline className="mr-3">
-                    <FormControl type="text" placeholder="Search" className="mr-sm-2"/>
-                    <Button variant = "primary" >Search</Button>
+                    <FormControl type="text" placeholder="Search" onChange={(ev)=>props.filter(ev.target.value)} className="mr-sm-2"/>
+                  
                 </Form>
             </Navbar.Collapse>
 
             <Navbar.Collapse className="justify-content-end" id="basic-navbar-nav">
+        
 
                 <Navbar.Brand>{props.clientName}</Navbar.Brand>
 

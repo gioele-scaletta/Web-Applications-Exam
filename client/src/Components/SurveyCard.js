@@ -10,20 +10,20 @@ function SurveyCard (props){
     const set = async function (id, flag){
         if(flag){
         await props.setus(id);
-        await setPath("/AllSurveys/"+props.id)
+        await setPath("/AllSurveys/fillinsurvey/"+props.id)
         }
         else{
         await props.setad(id);
-        await setPath("/admin/"+props.id)
+        await setPath("/admin/surveyresults/"+props.id)
         }
     }
 
     if(props.nusers){
         return (<> {path ? <Redirect to={path} /> :
-            <Card style={{ width: '18rem' }}>
+            <Card style={{ width: '30rem' }} className="p-3 m-3">
             <Card.Body>
                 <Card.Title>{props.title}</Card.Title>
-                <Card.Text>{"Completed by "+ props.nusers + "users"}</Card.Text>
+                <Card.Text>{"Completed by "+ props.nusers + " users"}</Card.Text>
                 <Button variant="primary" onClick={()=>set(props.id, false)}> See responses </Button>
             </Card.Body>
             </Card>
@@ -32,7 +32,7 @@ function SurveyCard (props){
         );
     } else {
         return (<> {path ? <Redirect to={path} /> :
-            <Card style={{ width: '18rem' }}>
+            <Card style={{ width: '30rem' }}className="p-3 m-3">
             <Card.Body>
                 <Card.Title>{props.title}</Card.Title>
                     <Button variant="primary" onClick={()=>set(props.id, true)}> Fill in survey </Button>

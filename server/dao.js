@@ -67,11 +67,8 @@ exports.loadSurveyQuestions = (sid) =>{
 exports.newSurvey = (ad, title)=>{
     return new Promise((resolve, reject) =>{
         const sql = 'INSERT INTO SURVEYS(survey_title, admin_id) VALUES(?,?)';
-        db.all(sql, [title, ad], (err, rows)=>{
-            if(err){
-                reject(err);
-                return;
-            }
+        db.run(sql, [title, ad], function (err, rows){
+            if(err)throw err;
         resolve(this.lastID);
         });
     }); 
@@ -80,13 +77,24 @@ exports.newSurvey = (ad, title)=>{
 
 exports.addQuestion = (s_id, qnum, qtext, open, optional, single)=>{
     return new Promise((resolve, reject) =>{
-        const sql = 'INSERT INTO QUESTIONS(survey_id, question_number, question_text, open, optional, choices) VALUES(?,?,?,?,?)';
-        db.all(sql, [s_id, qnum, qtext, open, optional, single], (err, rows)=>{
+        const sql = 'INSERT INTO QUESTIONS(survey_id, question_number, question_text, open, optional, choices) VALUES(?,?,?,?,?,?)';
+        db.run(sql, [s_id, qnum, qtext, open, optional, single], function (err, rows){
+            if(err) throw err;
+        resolve(this.lastID);
+        });
+    }); 
+};
+
+
+exports.getMaxResponse =() =>{
+    return new Promise((resolve, reject) =>{
+        const sql = 'SELECT COALESCE(MAX(response_num),0) as max FROM RESPONSES';
+        db.all(sql, (err, rows)=>{
             if(err){
                 reject(err);
                 return;
             }
-        resolve(this.lastID);
+        resolve(rows[0].max);
         });
     }); 
 };
@@ -102,21 +110,8 @@ exports.addResponse = (n, surveyid, qnum, response) =>{
                 reject(err);
                 return;
             }
-        resolve(this.lastID);
+           resolve(this.lastID);
         });
     }); 
 };
 
-exports.getMaxResponse =() =>{
-    return new Promise((resolve, reject) =>{
-        const sql = 'SELECT COALESCE(MAX(response_num),0) as max FROM RESPONSES';
-        db.all(sql, (err, rows)=>{
-            if(err){
-                reject(err);
-                return;
-            }
-            
-        resolve(rows[0].max);
-        });
-    }); 
-};

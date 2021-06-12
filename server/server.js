@@ -92,28 +92,30 @@ app.get('/api/surveyQuestions/:survey', (req,res)=>{
 });
 
 //Add a new survey type (need to be logged in) 
-app.post('/api/addSurvey', isLoggedIn, (req,res)=>{
+app.post('/api/addSurvey', isLoggedIn, async (req,res)=>{
   let s_id;
 
+  s_id= await dao.newSurvey(req.body[0].admin,req.body[0].Title);
+
   req.body.forEach(async (q, index)=>{
-    try{
-    if(index===0){
-      s_id= await dao.newSurvey(q.admin,q.Title);
-    }
-    else{
+  
+    if(index!==0){
+   try{
+      await console.log("here"+s_id);
       await dao.addQuestion(s_id, q.qnum, q.qtext, q.open, q.optional, q.single );
-    }}
+    }
     catch(error){
       res.status(500).json(error);
     }
-  });
+  }
+});
 });
 
 app.post('/api/sendSurvey', async (req,res)=>{
   let n= await dao.getMaxResponse();
 
   n++;
-  req.body.forEach(async (q, index)=>{
+  req.body.forEach(async (q)=>{
     try{
 
     await dao.addResponse(n, q.surveyid, q.qnum, q.response);

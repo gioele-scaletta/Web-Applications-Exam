@@ -1,78 +1,97 @@
-import AdminSurvey from "./AdminSurvey";
+import OpenAnswerForm from './OpenAnswerForm.js'
+import CloseAnswerForm from './CloseAnswerForm.js'
+import Button from 'react-bootstrap/Button'
+import Row from 'react-bootstrap/Row'
+import Col from 'react-bootstrap/Row'
+
+import { Link, useParams, Redirect} from 'react-router-dom';
+import {useState} from 'react'
+import Modal from 'react-bootstrap/Modal'
+import Form from 'react-bootstrap/Form'
 
 const CreateSurvey = function(props){
 
-    let [questions, setQuestions] = useState(undefined);
-    let [showForm, setShowForm] = useState(false);
-    let [open, setOpen] = useState(false);
-    let [title, setTitle] = useState('');
-    const [num, setNum] =useState(0);
+    const [questions, setQuestions] = useState([]);
+    const [showForm, setShowForm] = useState(false);
+    const [open, setOpen] = useState(false);
+    const [title, setTitle] = useState('');
+    const [num, setNum] =useState(1);
+    const [submitted, setSubmitted]= useState(false);
 
     const addQuestion = (text, ope, opt, sing) =>{
         let o;
-
+            let q;
         if(ope){
-            o=1;
+            q={qnum: num, qtext: text, open: 1, optional: '', single:''};
         } else{
-            o=0;
+            q={qnum: num, qtext: text, open: 0, optional: opt, single: sing};
         }
         
-        let q={qnum: id, qtext:text, open: o, optional: opt, single:sing};
-        setQuestions((exs) => exs.filter(ex => ex.num !== q.qnum))
+        //let q={qnum: num, qtext:text, open: o, optional: opt, single:sing};
+        //if(questions) setQuestions((exs) => exs.filter(ex => ex.num !== q.qnum));
         setQuestions(oldAnswers => [...oldAnswers, q]);
         setNum(num+1);
 
     }
 
-    const handleSubmit = (event) => {
-        //event.preventDefault();
+    const handleSubmit = async (event) => {
+        event.preventDefault();
         let questionsToBeSent = [];
-        let n={Title: title, ad:props.admin.id}
-        questionsToBeSent.push(n);
-        answers.forEach(a=>{
+        let n={Title: title, admin: props.admin}
+        await  questionsToBeSent.push(n);
+        await questions.forEach(a=>{
             questionsToBeSent.push(a);
-        }).then(props.addSurvey(questionsToBeSent));
+        });
+        await props.addSurvey(questionsToBeSent);
+        await setSubmitted(true);
         //MANCA VALIDATION
     };
 
     const handleCloseForm = () => {
         setShowForm(false);
-        setBgColor("");
+        
     }
-    const handleShowForm = (open) =>{ setOpen(open).then(setShowForm(true));}
+    const handleShowForm = (open) =>{ setOpen(open);setShowForm(true);}
 
-    return (<>
+    return (<>  {submitted ? <Redirect to="/admin" /> :null}
         <Row>
         <Form>
-            <Form.Group controlId="formGroupTitle">
-                <Form.Label>Email Survey Title</Form.Label>
-                <Form.Control  value={title} />
+        <Form.Group >
+                <Form.Label>Insert Survey title here</Form.Label>
+                <Form.Control type='text' onChange={(ev)=>setTitle(ev.target.value)} />
             </Form.Group>
         </Form>
-        </Row>
-        {questions.sort((a,b)=>{if(a.num<b.num)return a;}).forEach((q) =>{
-            if(q.open)
-            return <OpenAnswerForm key={q.id} question={q.text} response={undefined} add={addResponse}
-            />;
-            else
-            return <CloseAnswerForm key={q.id} question={q.text} optional={q.optional} single={q.single} response={undefined} add={addResponse}
-            />;
-        }
-        )}
-        <Modal show={showForm} onHide={handleCloseForm}>
-            <Modal.Header closeButton>
+        </Row> 
+        {questions ? questions.sort((a,b) => (a.qnum<b.qnum) ? a : b).map( (q) => q.open ?
+        <> <br></br>
+        <br></br>
+            <OpenAnswerForm key={q.qnum} id={q.qnum} question={q.qtext} response={"         "}
+            />
+            </>
+            :
+            <> <br></br>
+            <br></br>
+            <CloseAnswerForm key={q.qnum} id={q.qnum} question={q.qtext} optional={q.optional} single={q.single} response={"0|0|0|0"}
+            />
+
+            </>
+        ) : null}
+        
+        <Modal show={showForm} onHide={handleCloseForm} >
+            <Modal.Header >
                 <Modal.Title>Add new Question</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 {open ? <AddOpenEnded addQuestion={addQuestion} handleCloseForm={handleCloseForm} /> :  <AddCloseEnded addQuestion={addQuestion}  handleCloseForm={handleCloseForm} /> }
             </Modal.Body>
         </Modal>
-        <Row>
-            <Button onClick={handleShowForm(true)}>Add Open-ended question</Button> <Button onClick={handleShowForm(false)}>Add Closed-answer question</Button>
-        </Row>
-        <Row>
-            <Link to="/admin"><Button onClick={handleSubmit}>Submit the survey</Button></Link> <Link to="/admin"><Button variant='secondary'> Cancel </Button></Link>
-        </Row>
+        <br></br>
+            <Button variant="primary" size="sm" onClick={()=>handleShowForm(true)}>Add Open-ended question</Button> {'  '}<Button variant="primary" size="sm" onClick={()=>handleShowForm(false)}>Add Closed-answer question</Button>
+            <br></br>
+            <br></br>
+            <br></br>
+          <Link to="/admin"><Button onClick={handleSubmit}>Submit survey</Button></Link>  {'  '} <Link to="/admin"><Button variant='secondary'> Cancel </Button></Link>
+        
     </>);
 }
 
@@ -81,28 +100,33 @@ function AddOpenEnded(props) {
 
     const [text, setText] = useState(undefined);
 
-    const ifSubmit = (values) => {
+    const ifSubmit = () => {
      
-        props.addQuestion(text, id, true, '', '');
+        props.addQuestion(text,  true, '', '');
         props.handleCloseForm();
     };
 
 
-    return (
+    return (<>
         <Form>
             <Form.Group >
                 <Form.Label>Insert question</Form.Label>
-                <Form.Control type='text' value={text} />
+                <Form.Control type='text' onChange={(ev)=>setText(ev.target.value)} />
             </Form.Group>
             <Row>
-                <Col xs={{ offset: 2 }}>
-                    <Button type="submit" onClick={ifSubmit}>Save</Button>
-                </Col>
-                <Col xs={{ offset: 1 }}>
-                    <Button variant='secondary' onClick={props.handleCloseForm}>Cancel</Button>
-                </Col>
+              
             </Row>
         </Form>
+        <Row>
+        <Col xs={{ offset: 2 }}>
+                    <Button type="submit" onClick={()=>ifSubmit()}>Save</Button>
+                </Col>
+               
+         <Col xs={{ offset: 1 }}>
+         <Button variant='secondary' onClick={()=>props.handleCloseForm()}>Cancel</Button>
+     </Col>
+     </Row>
+     </>
 
     )
 
@@ -110,16 +134,17 @@ function AddOpenEnded(props) {
 
 function AddCloseEnded(props) {
 
-    const [text, setText] = useState(undefined);
+    const [text, setText] = useState('');
+    const [checkboxtext, setCheckboxtext] = useState('');
     const [texttmp, setTexttmp] = useState('');
     const [opt, setOpt]= useState (undefined); 
     const [sing, setSing]= useState(undefined);  
     const [showplus, setShowplus] =useState(true);
 
-    const ifSubmit = (values) => {
+    const ifSubmit = async () => {
      
-        props.addQuestion(text, id, false, opt, sing);
-        props.handleCloseForm();
+        await props.addQuestion(text+checkboxtext, false, opt, sing);
+        await props.handleCloseForm();
     };
 
     const toggle = ()=>{
@@ -128,40 +153,56 @@ function AddCloseEnded(props) {
 
     const append = ()=>{
         setShowplus(!showplus);
-        text.concat(texttmp);
+        setCheckboxtext(checkboxtext +'|'+texttmp);
     }
 
-    return (
+    return (<>
         <Form >
             <Form.Group  >
                 <Form.Label>Insert question</Form.Label>
-                <Form.Control type='text' value={title} />
+                <Form.Control type='text' onChange={(ev)=>setText(ev.target.value)} />
             </Form.Group>
-            {showplus ? <Button onClick={toggle}>Add checkbox</Button> : null}
-            {!showplus ?
-            <Form.Group  >
-                <Form.Label>Insert checkbox answer</Form.Label>
-                <Form.Control type='text' value={title} />
-            </Form.Group> : null}
-            {!showplus ? <Button onClick={append}> Confirm checkbox text </Button> : null}
+               
+            
+      
             <Form.Group>
               <Form.Label>Min</Form.Label>
-              <Form.Control type='number' value={opt}/>
+              <Form.Control type='text' onChange={(ev)=>setOpt(ev.target.value)} />
           </Form.Group>
           <Form.Group>
               <Form.Label>Max</Form.Label>
-              <Form.Control type='number' value={sing}/>
+              <Form.Control type='text' onChange={(ev)=>setSing(ev.target.value)} />
           </Form.Group>
-            <Row>
-                <Col xs={{ offset: 2 }}>
-                    <Button type="submit" onClick={ifSubmit}>Save</Button>
-                </Col>
-                <Col xs={{ offset: 1 }}>
-                    <Button variant='secondary' onClick={props.handleCloseForm}>Cancel</Button>
-                </Col>
-            </Row>
+          
         </Form>
-
+        <br></br>
+        <br></br>
+        <Form>
+        {showplus ? <Button onClick={toggle}>Add checkbox</Button> : null}
+            {!showplus ?
+            <Form.Group  >
+                <Form.Label>Insert checkbox answer</Form.Label>
+                <Form.Control type='text' onChange={(ev)=>setTexttmp(ev.target.value)} />
+            </Form.Group> : null}
+            {!showplus ? <Button onClick={()=>append()}> Confirm checkbox text </Button> : null}
+            <br></br>
+        <br></br>
+            <Form.Group controlId="exampleForm.ControlTextarea1">
+                {checkboxtext ? checkboxtext.split('|').splice(1,).map((q, index) =>
+               <Form.Check  type="checkbox" label={q}/>
+                 ) : null}
+            </Form.Group>
+        </Form>
+        
+           <Row>
+           <Col xs={{ offset: 2 }}>
+               <Button type="submit" onClick={()=>ifSubmit()}>Save</Button>
+           </Col>
+           <Col xs={{ offset: 1 }}>
+               <Button variant='secondary' onClick={()=>props.handleCloseForm()}>Cancel</Button>
+           </Col>
+       </Row>
+        </>
     )
 
 }
