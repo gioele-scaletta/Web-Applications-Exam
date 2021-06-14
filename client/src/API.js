@@ -53,27 +53,51 @@ async function getSurveyQuestions(survey){
 
 
 
-async function addSurvey(newSurvey){
+function addSurvey(newSurvey){
+  return new Promise((resolve, reject) => {
     fetch('/api/addSurvey', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(newSurvey)
-    })
+    }).then ((response)=>{
+      if(response.ok) {
+        resolve(null);
+      }
+      else {
+        // analyze and return the error
+        // TODO: complete the error handling
+        response.json()
+          .then((obj)=> { reject(obj); })
+          //...
+      }
+    }).catch(err => { reject({'error': 'Cannot communicate with the server'})});
+  });
 }
 
-async function sendSurvey(surveyresponse){
+function sendSurvey(surveyresponse){
+  return new Promise((resolve, reject) => {
     fetch('/api/sendSurvey', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(surveyresponse)
-    })
-
+    }).then ((response)=>{
+      if(response.ok) {
+        resolve(null);
+      }
+      else {
+        // analyze and return the error
+        // TODO: complete the error handling
+        response.json()
+          .then((obj)=> { reject(obj); })
+          //...
+      }
+    }).catch(err => { reject({'error': 'Cannot communicate with the server'})});
+  });
 }
-
 
 
 
@@ -88,7 +112,7 @@ async function login(credentials) {
     });
     if(response.ok) {
       const user = await response.json();
-      return user.username;
+      return user.username+'|'+user.id;
     }
     else {
         const errDetails = await response.text();

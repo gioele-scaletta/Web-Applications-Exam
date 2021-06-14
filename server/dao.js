@@ -13,7 +13,6 @@ exports.loadAllSurveys = () => {
                 return;
             }
             const surveysToComplete = rows.map((r) => ({survey_id: r.survey_id, survey_title: r.survey_title}));
-            console.log(surveysToComplete[0].survey_id);
         resolve(surveysToComplete);
         });
     });
@@ -68,7 +67,10 @@ exports.newSurvey = (ad, title)=>{
     return new Promise((resolve, reject) =>{
         const sql = 'INSERT INTO SURVEYS(survey_title, admin_id) VALUES(?,?)';
         db.run(sql, [title, ad], function (err, rows){
-            if(err)throw err;
+            if(err){
+                reject (err);
+                return;
+            } 
         resolve(this.lastID);
         });
     }); 
@@ -79,7 +81,10 @@ exports.addQuestion = (s_id, qnum, qtext, open, optional, single)=>{
     return new Promise((resolve, reject) =>{
         const sql = 'INSERT INTO QUESTIONS(survey_id, question_number, question_text, open, optional, choices) VALUES(?,?,?,?,?,?)';
         db.run(sql, [s_id, qnum, qtext, open, optional, single], function (err, rows){
-            if(err) throw err;
+            if(err){
+                reject(err);
+                return;
+            }
         resolve(this.lastID);
         });
     }); 
@@ -105,7 +110,7 @@ exports.addResponse = (n, surveyid, qnum, response) =>{
  
     return new Promise((resolve, reject) =>{
         const sql = 'INSERT INTO RESPONSES(survey_id, question_num, response_text, response_num) VALUES(?,?,?,?)';
-        db.all(sql, [surveyid, qnum, response, n], (err, rows)=>{
+        db.run(sql, [surveyid, qnum, response, n], (err, rows)=>{
             if(err){
                 reject(err);
                 return;

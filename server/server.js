@@ -94,9 +94,12 @@ app.get('/api/surveyQuestions/:survey', (req,res)=>{
 //Add a new survey type (need to be logged in) 
 app.post('/api/addSurvey', isLoggedIn, async (req,res)=>{
   let s_id;
-
+try{
   s_id= await dao.newSurvey(req.body[0].admin,req.body[0].Title);
-
+}
+catch(error){
+  res.status(500).json(error);
+}
   req.body.forEach(async (q, index)=>{
   
     if(index!==0){
@@ -112,8 +115,13 @@ app.post('/api/addSurvey', isLoggedIn, async (req,res)=>{
 });
 
 app.post('/api/sendSurvey', async (req,res)=>{
-  let n= await dao.getMaxResponse();
-
+  let n;
+  try{
+  n= await dao.getMaxResponse();
+}
+catch(error){
+  res.status(500).json(error);
+}
   n++;
   req.body.forEach(async (q)=>{
     try{

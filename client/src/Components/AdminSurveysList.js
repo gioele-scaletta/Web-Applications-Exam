@@ -2,6 +2,7 @@ import SurveyCard from "./SurveyCard.js"
 
 const AdminSurveyList= function (props){
 
+
     return (  <>
     {props.surveys.map((s) => ((s.survey_title.indexOf(props.filter)!==-1) || (!props.filter) ) ? 
         <>

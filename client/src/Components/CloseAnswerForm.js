@@ -1,10 +1,14 @@
 import Form from'react-bootstrap/Form'
 import { useState, useEffect } from 'react'
+import Alert from 'react-bootstrap/Alert'
 
 
 const CloseAnswerForm = function(props){
 
     let Question =[];
+   
+   
+    
     Question = String(props.question).split("|");
  
     let Response=[];
@@ -45,6 +49,7 @@ const CloseAnswerForm = function(props){
                 <Form.Check checked={Response[index-1]==1} type="checkbox" label={q}/> :
                 null
                 )}
+               
             </Form.Group>
             </Form>
         );
@@ -52,10 +57,12 @@ const CloseAnswerForm = function(props){
         return(
             <Form>
             <Form.Group controlId="exampleForm.ControlTextarea1">
+                <Form.Text> {"You can select between " + props.optional + "and " + props.single + "checkboxes"}  </Form.Text>
                 <Form.Label>{Question[0]}</Form.Label>
                 {Question.map((q, index)=>{Response[index-1]=0; if (index!=0) return (
-                <CustomCheck q={q} key={index} index={index} Check={Check} write={true}  />
+                <CustomCheck q={q} key={index} index={index} Check={Check}   />
                 );})}
+                  {(props.error!==[] && props.tried && props.error.filter((a)=>a===(props.id)).length>0) ? <Alert variant ={'danger'}> " Your answer does not respect the min-max constraint, please correct your answer" </Alert > : null}
             </Form.Group>
             </Form>
         );

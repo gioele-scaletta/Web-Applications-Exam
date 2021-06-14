@@ -17,7 +17,7 @@ const NavBar = function (props) {
 
     return (
             <>
-        {tologin ? <Redirect to="/admin/login"/> :
+      
 
         <Navbar  bg="dark" variant="dark" expand="lg">
 
@@ -46,17 +46,12 @@ const NavBar = function (props) {
                 <NavDropdown title="Logout" id="basic-nav-dropdown"  color="white">
                     <NavDropdown.Item  onClick={props.logout} eventKey="1">logout</NavDropdown.Item>
                     </NavDropdown>
-                </> :  <>
-               
-                <NavDropdown title="Login" id="basic-nav-dropdown"  color="white">
-                 <NavDropdown.Item onClick={()=>setToLogin(true)} eventKey="2">login</NavDropdown.Item> 
-                    </NavDropdown>
-                </>
+                </> :  null
                 }
             </Navbar.Collapse>
 
         </Navbar>
-            }</>
+            </>
     );
 }
 
