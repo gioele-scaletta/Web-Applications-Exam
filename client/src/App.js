@@ -49,9 +49,6 @@ function App() {
   //message temporarely displayed after login
   const [loginmessage, setLoginMessage] = useState(); 
 
-  //needed to display title of a certain surveyid inside different components
-  const [title, setTitle] = useState(); 
-
   const[color, setColor] =useState();
   
   //checking authorization
@@ -59,10 +56,10 @@ function App() {
     const checkAuth = async () => {
       try{
         let res=await API.getAdminInfo();
-        await setAdmin(res.username);
-        await setId(res.id);
+        setAdmin(res.username);
+        setId(res.id);
     } catch {
-        await setAdmin(undefined);
+        setAdmin(undefined);
     }};
 
     checkAuth();
@@ -76,7 +73,7 @@ function App() {
     };
 
     getSurveys().catch(err => {
-      setLoginMessage({msg: "Impossible to load ! Please, try again later...", type: 'danger'});
+      setLoginMessage({msg: "Impossible to load data ! Please, try again later...", type: 'danger'});
       console.error(err);
     });
   }, [updateSurveysToComplete])
@@ -85,13 +82,12 @@ function App() {
   //SUBMITTED SURVEYS: surveys submission info for the survey created by a specific admin
   useEffect(()=> {
     const getSurveys = async () => {
-      if(admin){ setSubmittedSurveys(await API.loadSubmittedSurveys()); 
-        
-      }
+      if(admin)
+        setSubmittedSurveys(await API.loadSubmittedSurveys()); 
     };
 
     getSurveys().catch(err => {
-      setLoginMessage({msg: "Impossible to load ! Please, try again later...", type: 'danger'});
+      setLoginMessage({msg: "Impossible to load data ! Please, try again later...", type: 'danger'});
       console.error(err);
     });
   }, [updateSubmittedSurveys, admin])
@@ -101,11 +97,13 @@ function App() {
   useEffect(()=>{
     if(answerssurveyid){
       const getSurveyRes = async ()=>{
-        await setTitle(await getSurveyTitle(answerssurveyid));
-        await setResponses(await API.getSurveyResults(answerssurveyid)); 
+        setResponses(await API.getSurveyResults(answerssurveyid)); 
       }
     
-      getSurveyRes();
+      getSurveyRes().catch(err => {
+        setLoginMessage({msg: "Impossible to load data ! Please, try again later...", type: 'danger'});
+        console.error(err);
+      });
     }
   }, [answerssurveyid]);
 
@@ -114,11 +112,13 @@ function App() {
   useEffect(()=>{
     if(questionssurveyid){
     const findSurveyStruct = async ()=>{
-      await setTitle(await getSurveyTitle(questionssurveyid));
-      await setQuestions(await API.getSurveyQuestions(questionssurveyid));
+      setQuestions(await API.getSurveyQuestions(questionssurveyid));
     }
 
-    findSurveyStruct();
+    findSurveyStruct().catch(err => {
+      setLoginMessage({msg: "Impossible to load data ! Please, try again later...", type: 'danger'});
+      console.error(err);
+    });
   }
   }, [questionssurveyid]);
 
@@ -161,8 +161,10 @@ function App() {
       await API.addSurvey(newSurvey)
       .then(()=>{updatesurveystocomplete()})
       .catch(err =>console.log(err))
+      setLoginMessage({ msg: `The new Survey has been successfully uploaded, thank you!`, type: 'success' });
       } catch (err){
         console.log(err);
+        setLoginMessage({ msg: `Something went wrong with your submission, the Survey has not been recorded, sorry for the inconvenient`, type: 'danger' });
       }
     }
   }
@@ -171,8 +173,11 @@ function App() {
   const fillInSurvey = async (surveyresponse) => {
     if(surveyresponse){
       await API.sendSurvey(surveyresponse)
-      .then(()=>{updatesubmittedsurveys()})
-      .catch(err => console.log(err))
+      .then(()=>{updatesubmittedsurveys();
+        setLoginMessage({ msg: `The response has been successfully submitted, thank you!`, type: 'success' });})
+      .catch((err) =>{ console.log(err);
+      setLoginMessage({ msg: `Something went wrong with your submission, the response has not been uploaded, sorry for the inconvenient`, type: 'danger' });})
+      
     }
   }
 
@@ -193,11 +198,6 @@ function App() {
     await setQuestionssurveyid(survey);
   }
 
-  //set title for a certain survey
-  const getSurveyTitle= async (currentsurveyid) => {
-    return surveysToComplete.map((s)=> {  if(s.survey_id === currentsurveyid) return s.survey_title;});
-  }
-
   //change state to triogger useEffects
   const updatesurveystocomplete = ()=> {setUpdateSurveysToComplete(t=>!t)};
   const updatesubmittedsurveys = ()=> {setUpdateSubmittedSurveys(t=>!t)};
@@ -207,7 +207,7 @@ function App() {
   //RENDERING
   return (
     <Router>
-      <Container fluid className="vh-100 d-flex flex-column ">
+      <Container fluid className="vh-100 d-flex flex-column">
 
         <Row className="ml-5 p-0">
           <Col className="m-0 p-0">
@@ -245,7 +245,7 @@ function App() {
               render={() =>
                 //!loggedIn ? <Redirect to="/admin/login" /> :
             
-                !admin ? <Redirect to="/admin/login"  /> :
+                !admin ? <Redirect to="/admin/login"/> :
                 <>
                 <Row  align='center' className="p-5 w-100">
                 <Row  className="w-100"  >
@@ -262,12 +262,12 @@ function App() {
             />
 
             <Route exact path="/admin/surveyresults/:survey"
-              render={() =>
-                !admin ? <Redirect to="/admin/login" /> :
+              render={({match}) =>
+                !admin ? <Redirect to="/admin/login"/> :
                   <>
                     <Container fluid className="vh-100 d-flex flex-column " style={{backgroundColor: color}}>
                   <Col  sm={{span:8, offset:2}}>
-                      {(Questions.length !==0 && Responses.length!==0) ?<AdminSurvey responses={Responses} surveytitle={title} questions={Questions} /> :null}
+                      {(Questions.length !==0 && Responses.length!==0) ?<AdminSurvey responses={Responses} surveytitle={match.params.survey} questions={Questions} /> :null}
                     </Col>
                     </Container>
                   </>
@@ -276,7 +276,6 @@ function App() {
 
             <Route exact path="/admin/createsurvey"
               render={() =>
-                //!loggedIn ? <Redirect to="/admin/login" /> :
                 !admin ? <Redirect to="/admin/login" /> :
                   <>
                   <Container fluid  className="vh-100 d-flex flex-column " style={{backgroundColor: '#768A95'}}>
@@ -288,7 +287,7 @@ function App() {
               }
             />
 
-            <Route exact path="/AllSurveys"
+            <Route exact path="/allsurveys"
               render={() =>
               <>
                 <UserSurveyList backgroundColor={backgroundColor} filter={navfilter} surveys={surveysToComplete} setus={FillSurvey} />
@@ -296,18 +295,18 @@ function App() {
               }
             />
 
-            <Route exact path="/AllSurveys/fillinsurvey/:survey"
-              render={() =>
+            <Route exact path="/allsurveys/fillinsurvey/:survey"
+              render={({match}) =>
                 <><Container fluid  className="vh-100 d-flex flex-column" style={{backgroundColor: color}}>
                   <Col  sm={{span:8, offset:2}}>
-                    <UserFillInSurvey color={color} surveyid={questionssurveyid} surveytitle={title} questions={Questions} fillIn={fillInSurvey} />
+                    <UserFillInSurvey color={color} surveyid={questionssurveyid} surveytitle={match.params.survey} questions={Questions} fillIn={fillInSurvey} />
                   </Col>
                   </Container>
                 </>
               }
             />
 
-            <Redirect to="/AllSurveys" />
+            <Redirect to="/allsurveys" />
 
           </Switch>
         </Row>

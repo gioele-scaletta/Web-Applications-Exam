@@ -84,7 +84,7 @@ const CloseAnswerForm = function(props){
                     <CustomCheck q={q} key={index} index={index} Check={Check}   />
                 );})}
                 {(props.error!==[] && props.tried && props.error.filter((a)=>a===(props.id)).length>0) ? <Alert variant ={'danger'}> 
-                Your answer does not respect the constraints of selectable checkboxes, please correct your answer</Alert > : null}
+                Your answer does not respect the constraints of selectable checkboxes, please correct your answer</Alert > :  <><br></br><br></br></> }
                 <br></br>
             </Form.Group>
             </Form>

@@ -45,23 +45,24 @@ const AdminSurvey= function (props){
                     {props.surveytitle}
                 </h1>
 
-            </Row><br></br>
+            </Row><br></br><br></br>
         
             <OpenAnswerForm key={0} id={0} question={"Name"} response={props.responses.filter( (r) => (r.rnum===users[currentUser] && r.qnum===0)).map((r)=>r.rtext)} add={undefined} />
 
             {props.questions.sort((a,b) => (a.qnum<b.qnum) ? a : b)
                 .map( (q) => q.open ?
-                    <><br></br>
+                    <>
                         <OpenAnswerForm key={q.qnum} id={q.qnum} add={undefined} question={q.qtext} response={props.responses.filter( (r) => (r.rnum===users[currentUser] && r.qnum===q.qnum)).map((r)=>r.rtext)} />
                                           
                     </>
                 :
-                    <>  <br></br> 
+                    <>  
                         <CloseAnswerForm  key={q.qnum} id={q.qnum} maxseq={mode( props.responses.map((r)=>r.rtext))} maxq={maxquestion(props.responses.map((r)=>r.rtext))} question={q.qtext} optional={q.optional} single={q.single} response={props.responses.filter((r) => (r.rnum===users[currentUser] && r.qnum===q.qnum)).map((r)=>r.rtext)}/>
                     </>
                 )
             }
         
+            <br></br>
             <Button className="m-2" onClick={previous}>Previous Survey  </Button> 
            
             <Button className="m-2" onClick={next}>Next Survey</Button>  

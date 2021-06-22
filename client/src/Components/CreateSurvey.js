@@ -41,16 +41,17 @@ const CreateSurvey = function(props) {
             q={qnum: (modaln===-1) ? num : modaln, qtext: text, open: 0, optional: parseInt(opt), single: parseInt(sing)};
         
         await setQuestions(oldAnswers => oldAnswers.filter((r)=>r.qnum!==modaln));
-        await setQuestions(oldAnswers => [...oldAnswers, q]);
+        setQuestions(oldAnswers => [...oldAnswers, q]);
 
-        if(modaln===-1) await setNum(num+1);
+        if(modaln===-1) 
+             setNum(num+1);
 
-        await handleCloseForm();
+        handleCloseForm();
         
     }
     
     //update list of questions in order to move the selected question down of one position
-    const Up= function (n) {
+    const Up= (n)=> {
 
         if(n!==1)
             setQuestions(
@@ -66,9 +67,8 @@ const CreateSurvey = function(props) {
     //update list of questions in order to move the selected question down of one position
     const Down= (n) =>{
 
-        console.log(questions.map((r)=>r.qnum))
         let max=questions.reduce((r,a)=>a.qnum>r.qnum ? a:r);
- 
+
        if((n!==max.qnum))
             setQuestions(
                 questions.map((r)=>{
@@ -100,17 +100,17 @@ const CreateSurvey = function(props) {
     }
 
     //When admin submits survey the already 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
+    const handleSubmit = async () => {
+      
         if(questions.length>0 && title.length>0 && !title.isEmpty()){ //VALIDATION
         let questionsToBeSent = [];
         let n={Title: title, admin: props.admin}
-        await  questionsToBeSent.push(n);
-        await questions.forEach(a=>{
+        questionsToBeSent.push(n);
+        questions.forEach(a=>{
             questionsToBeSent.push(a);
         });
         await props.addSurvey(questionsToBeSent);
-        await setSubmitted(true);
+        setSubmitted(true);
     } else{
         setMissing(true);
         //alert("Please insert at least question and the title of the survey to submit the survey");
@@ -124,6 +124,8 @@ const CreateSurvey = function(props) {
         setModal('');
         setModaln(-1);
     }
+    let colors=['#283747', '#000000', '#EEFBFB','#12232E', '#203647'];
+    let iconcolor= colors[1];
 
     const handleShowForm = (open) =>{ setShowForm(open);}
 
@@ -153,14 +155,12 @@ const CreateSurvey = function(props) {
                                 <OpenAnswerForm key={q.qnum} id={q.qnum} question={q.qtext} optional={q.optional} response={"         "}/>
                                 
                                 <Container align="right" >
-                                < ArrowUp color="blue" className="m-3" size={25} onClick={()=>Up(q.qnum)} /> 
-                                < ArrowDown color="blue" className="m-3"size={25} onClick={()=>Down(q.qnum)} />
-                                < Trash color="blue" className="m-3" size={25} href="#" onClick={()=>handleDelete(q.qnum)} /> 
-                                < PencilSquare color="blue" className="m-3" size={25} onClick={()=>handleUpdate(1, q.qtext, q.qnum, q.optional, '')} />
+                                < ArrowUp color={iconcolor} className="m-3" size={25} onClick={()=>Up(q.qnum)} /> 
+                                < ArrowDown color={iconcolor} className="m-3"size={25} onClick={()=>Down(q.qnum)} />
+                                < PencilSquare color={iconcolor} className="m-3" size={25} onClick={()=>handleUpdate(1, q.qtext, q.qnum, q.optional, '')} />
+                                < Trash color={iconcolor} className="m-3" size={25} href="#" onClick={()=>handleDelete(q.qnum)} /> 
                                 </Container>
 
-                               
-                               
                             </>
                             :
                             <> <br></br><br></br>
@@ -168,10 +168,10 @@ const CreateSurvey = function(props) {
                                     <CloseAnswerForm key={q.qnum} id={q.qnum} question={q.qtext} optional={q.optional} single={q.single} response={"0|0|0|0"}/>
                                 </Col>
                                 <Container align="right" >
-                                < ArrowUp color="blue" className="m-3" size={25} onClick={()=>Up(q.qnum)} /> 
-                                < ArrowDown color="blue" className="m-3"size={25} onClick={()=>Down(q.qnum)} />
-                                < Trash color="blue" className="m-3" size={25} href="#" onClick={()=>handleDelete(q.qnum)} /> 
-                                < PencilSquare color="blue" className="m-3" size={25} onClick={()=>handleUpdate(2, q.qtext, q.qnum, q.optional, q.single)} />
+                                < ArrowUp color={iconcolor} className="m-3" size={25} onClick={()=>Up(q.qnum)} /> 
+                                < ArrowDown color={iconcolor} className="m-3"size={25} onClick={()=>Down(q.qnum)} />
+                                < PencilSquare color={iconcolor} className="m-3" size={25} onClick={()=>handleUpdate(2, q.qtext, q.qnum, q.optional, q.single)} />
+                                < Trash color={iconcolor} className="m-3" size={25} href="#" onClick={()=>handleDelete(q.qnum)} /> 
                                 </Container>
                             </>
                         ) 
@@ -201,7 +201,7 @@ const CreateSurvey = function(props) {
                     <Col align="right" className="bottom m-2">
                         <div style={{display: 'inline'}}>
                             <Link to="/admin"><Button className="w-25" variant='secondary'> Cancel </Button></Link> 
-                            <Button style={{marginLeft:"30px"}} className="w-25" variant="dark" onClick={handleSubmit}> Submit survey </Button>
+                            <Button style={{marginLeft:"30px"}} className="w-25" variant="dark" onClick={()=>handleSubmit()}> Submit survey </Button>
                         </div>
                     </Col>
                     
@@ -288,7 +288,7 @@ function AddCloseEnded(props) {
                 setMissing(false);
             if(/^\d+$/.test(opt) && /^\d+$/.test(opt) && opt<=sing && sing<checkboxtext.split('|').length) { //VALIDATION STEP 2
                 setValMinMax(false);
-                await props.addQuestion(text+checkboxtext.replace(text,''), false, opt , sing);  //merge all questions text in one string
+                props.addQuestion(text+checkboxtext.replace(text,''), false, opt , sing);  //merge all questions text in one string
             }else{
                 //alert("Min and max attributes should be numbers!")
                 setValMinMax(true);
@@ -307,12 +307,11 @@ function AddCloseEnded(props) {
     }
 
     //merge of new checkbox question text with prevous ones
-    const append = ()=>{
+    const append =  ()=>{
         if(texttmp.length>0 && !texttmp.isEmpty()){
             setValText(false);
             setShowplus(!showplus);
             setCheckboxtext(checkboxtext +'|'+texttmp);
-            setTexttmp('');
         } else{
             setValText(true);
             //alert("Please insert some checkbox text")

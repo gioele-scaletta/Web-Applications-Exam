@@ -8,11 +8,11 @@ import Row from 'react-bootstrap/Row'
 const OpenAnswerForm = function(props){
     
     const [text, setText] = useState();
-    const [r, setR] =useState(props.id===0 ? 1 : 4);
+    const [r, setR] =useState(props.id===0 ? 1 : 4); 
 
     useEffect(() => {
         if(!props.response)
-             props.add(text ? text : '', props.id);
+             props.add(text ? text : ' ', props.id);
     }, [text])
 
 
@@ -23,6 +23,7 @@ const OpenAnswerForm = function(props){
         <Form.Group >
             <Form.Label>{props.question}</Form.Label>
             <Form.Control  rows={r} as="textarea" placeholder={props.response} readOnly />
+            <><br></br><br></br></>
         </Form.Group>
         </Form>
       </>
@@ -31,11 +32,11 @@ const OpenAnswerForm = function(props){
     return(
         <Form >
         <Form.Group>
-            <Form.Label>{props.question}</Form.Label>
-           {!(props.optional===0) ? <Asterisk color="blue" /> : null }
+            <Form.Label>{props.question}</Form.Label>{'  '}
+           {!(props.optional===0) ? <Form.Text>(This answer is mandatory) </Form.Text> : null}
             <Form.Control as="textarea" value={text} onChange={ev=>setText(ev.target.value)} rows={r} />
       
-            {(props.error!==[] && props.tried) ? ((props.error.filter((a)=>a===(props.id)).length>0) ? (!(props.optional===0) ? <Alert variant ={'danger'}> Please remember that text shold be less than 200 characters and that this answer is mandatory </Alert > : <Alert variant ={'danger'}> Please remember that text should be less than 200 characters</Alert> ) : null) : null}
+            {(props.error!==[] && props.tried) ? ((props.error.filter((a)=>a===(props.id)).length>0) ? (!(props.optional===0) ? <Alert variant ={'danger'}> Please remember that text shold be less than 200 characters and that this answer is mandatory </Alert > : <Alert variant ={'danger'}> Please remember that text should be less than 200 characters</Alert> ) : <><br></br><br></br></> ) : <><br></br><br></br></> }
         </Form.Group>
         </Form>
     );

@@ -144,8 +144,9 @@ app.post('/api/sendSurvey', async (req, res) => {
     res.status(500).json("wrong or inconsostent Question format");
 
   req.body.forEach((q, index)=>{
-    if(q.qnum<0 || !q.response || q.surveyid<0)
-      res.status(500).json("wrong or inconsostent Question format");
+    if(q.qnum<0 || !q.response || q.surveyid<0){
+    console.log(q);
+      res.status(500).json("wrong or inconsostent Question format");}
   });
 
   let n;

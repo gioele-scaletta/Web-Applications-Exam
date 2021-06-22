@@ -21,15 +21,14 @@ const AdminSurveyList= function (props){
     }
 
     const changeColor= async function(){
-        let color=undefined;
-        while(!color) color=myColors[color_scheme].splice(Math.floor(Math.random() * (myColors[color_scheme].length)),1);
+        let color=myColors[color_scheme].splice(Math.floor(Math.random() * (myColors[color_scheme].length-3)),1);
         toggleColor(color);
         return color;
     }
 
     return (  
         <>
-            {props.surveys.map((s) => ((s.survey_title.indexOf(props.filter)!==-1) || (!props.filter) ) ? 
+            {props.surveys.map((s) => ((s.survey_title.toLowerCase().indexOf(props.filter ? props.filter.toLowerCase() : props.filter)!==-1) || (!props.filter) ) ? 
                 <><br></br>
                     <SurveyCard key={s.survey_id} id={s.survey_id} title={s.survey_title} nusers={s.nusers} setad={props.setad} backgroundColor={props.backgroundColor} getColor={changeColor} />
                 </> : null

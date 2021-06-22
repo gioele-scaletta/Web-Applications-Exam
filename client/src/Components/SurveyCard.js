@@ -22,13 +22,13 @@ function SurveyCard (props){
             //if we are in the user mode we call setus which will call FillIn in App.js which will trigger the loading of the survey questions (for the user to be able to fill in the survey)
             await props.setus(id);
             await props.backgroundColor(color);
-            await setPath("/AllSurveys/fillinsurvey/"+props.id)//used to specify where to redirect (for the redirect we have to wait for the prev mentioned loading)
+            await setPath("/allsurveys/fillinsurvey/"+props.title)//used to specify where to redirect (for the redirect we have to wait for the prev mentioned loading)
         }
         else
         {   //otherwise in admin mode we cann setad which will call CheckSurvey in App.js tha will trigger the loading of questions and asnwers for a specific survey
             await props.setad(id);
             await props.backgroundColor(color);
-            await setPath("/admin/surveyresults/"+props.id)//used to specify where to redirect (for the redirect we have to wait for the prev mentioned loading)
+            await setPath("/admin/surveyresults/"+props.title)//used to specify where to redirect (for the redirect we have to wait for the prev mentioned loading)
         }
     }
 
