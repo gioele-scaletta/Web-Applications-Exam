@@ -1,11 +1,10 @@
 import './App.css';
 import Container from 'react-bootstrap/Container'
-import { PlusCircleFill } from 'react-bootstrap-icons'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
 import LoginForm from './Components/login.js'
-import { BrowserRouter as Router, Route, Switch, useParams, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch, Link } from 'react-router-dom';
 import { Redirect } from 'react-router';
 import { useEffect, useState } from 'react'
 import Alert from 'react-bootstrap/Alert'
@@ -17,7 +16,6 @@ import {UserSurveyList} from './Components/UserSurveysList.js'
 import CreateSurvey from './Components/CreateSurvey.js'
 import API from './API.js'
 import Button from 'react-bootstrap/Button'
-
 
 
 function App() {
@@ -42,7 +40,7 @@ function App() {
   const [answerssurveyid, setAnswerssurveyid]= useState(undefined);
 
   //states for storing admin info
-  const [admin, setAdmin] = useState(undefined);
+  const [admin, setAdmin] = useState();
   const [id, setId] = useState();
   
   //state used for filtering surveys using navbar filter
@@ -54,10 +52,7 @@ function App() {
   //needed to display title of a certain surveyid inside different components
   const [title, setTitle] = useState(); 
 
-  //state needed to ensure that after a submit the data are uploaded in the db before loading another page
-  const [ready, setReady] = useState(true);
-
-
+  const[color, setColor] =useState();
   
   //checking authorization
   useEffect(() => {
@@ -90,7 +85,9 @@ function App() {
   //SUBMITTED SURVEYS: surveys submission info for the survey created by a specific admin
   useEffect(()=> {
     const getSurveys = async () => {
-      if(admin) setSubmittedSurveys(await API.loadSubmittedSurveys()); 
+      if(admin){ setSubmittedSurveys(await API.loadSubmittedSurveys()); 
+        
+      }
     };
 
     getSurveys().catch(err => {
@@ -126,28 +123,27 @@ function App() {
   }, [questionssurveyid]);
 
 
-
-
    //message temporarely displayed after login
   useEffect(() => {
     setTimeout(() => {  
       // After 2 seconds make it disappear
-      setLoginMessage(null)
+      setLoginMessage(undefined);
     }, 2000)
   }, [loginmessage]);
 
 
   //Login and Logout methods
   const doLogin = async (credentials) => {
+    
     try {
-
-      let user=await API.login(credentials);
-        await setAdmin(user.split('|')[0]);
-        await setId(user.split('|')[1]);
-        await setLoginMessage({ msg: `Welcome, ${admin}!`, type: 'success' });
+        let user=await API.login(credentials);
+        setAdmin(user.split('|')[0]);
+        setId(user.split('|')[1]);
+        setLoginMessage({ msg: `Welcome, ${user.split('|')[0]}!`, type: 'success' });
     } catch (err) {
         setLoginMessage({ msg: err, type: 'danger' });
     }
+  
   }
 
   const doLogout = async () =>{
@@ -161,7 +157,6 @@ function App() {
   //Method used to trigger POST of new survey added by admiin
   const addSurvey = async (newSurvey) => {
     if(newSurvey){
-      //await setReady(false)
       try{
       await API.addSurvey(newSurvey)
       .then(()=>{updatesurveystocomplete()})
@@ -169,18 +164,15 @@ function App() {
       } catch (err){
         console.log(err);
       }
-      //await setReady(true)
     }
   }
 
   //Methods used to trigger POST of new survey response inserted by user
   const fillInSurvey = async (surveyresponse) => {
     if(surveyresponse){
-      //await setReady(false)
       await API.sendSurvey(surveyresponse)
       .then(()=>{updatesubmittedsurveys()})
       .catch(err => console.log(err))
-      //await setReady(true);
     }
   }
 
@@ -188,7 +180,7 @@ function App() {
   const FillSurvey = async (survey) =>{
     await setQuestions([]);
     await setQuestionssurveyid('');
-     await setQuestionssurveyid(survey);
+    await setQuestionssurveyid(survey);
   }
 
   //Method used for triggering load of questions and answers for a specific survey when an admin wants to check responses
@@ -203,19 +195,19 @@ function App() {
 
   //set title for a certain survey
   const getSurveyTitle= async (currentsurveyid) => {
-    return surveysToComplete.map((s)=> { console.log(s.survey_id); if(s.survey_id === currentsurveyid) return s.survey_title;});
+    return surveysToComplete.map((s)=> {  if(s.survey_id === currentsurveyid) return s.survey_title;});
   }
 
   //change state to triogger useEffects
   const updatesurveystocomplete = ()=> {setUpdateSurveysToComplete(t=>!t)};
   const updatesubmittedsurveys = ()=> {setUpdateSubmittedSurveys(t=>!t)};
   const filterCards = (text)=> {setNavfilter(text)};
-
+  const backgroundColor =(col)=>{setColor(col)};
 
   //RENDERING
   return (
     <Router>
-      <Container fluid >
+      <Container fluid className="vh-100 d-flex flex-column ">
 
         <Row className="ml-5 p-0">
           <Col className="m-0 p-0">
@@ -224,12 +216,12 @@ function App() {
         </Row>
 
         <Row>
-          {loginmessage &&
+          {loginmessage ?
             <Row>
               <Col sm={{ span: 4, offset: 4 }} >
-                <Alert variant={loginmessage.type} onClose={() => setLoginMessage(null)} dismissible>{loginmessage.msg}</Alert>
+                <Alert variant={loginmessage.type} >{loginmessage.msg}</Alert>
               </Col>
-            </Row>}
+            </Row>:null}
         </Row>
 
         <Row>
@@ -252,16 +244,20 @@ function App() {
             <Route exact path="/admin"
               render={() =>
                 //!loggedIn ? <Redirect to="/admin/login" /> :
-                !admin ? <Redirect to="/admin/login" /> :
-                  ready ?
-                  <>
-                    <AdminSurveysList filter={navfilter} surveys={submittedSurveys} setad={CheckSurvey} />
-                    <br></br>
-                    <br></br>
-                    <br></br>
-                    <Link to='/admin/createsurvey'><Button> Create new Survey</Button> </Link>
-                  </>
-                  : null
+            
+                !admin ? <Redirect to="/admin/login"  /> :
+                <>
+                <Row  align='center' className="p-5 w-100">
+                <Row  className="w-100"  >
+                 <Link to='/admin/createsurvey'><Button className="w-75" variant="dark"> Create new Survey</Button> </Link>
+                 </Row>
+                 </Row>
+                 <br></br>
+                  <br></br>
+                 
+                  <AdminSurveysList backgroundColor={backgroundColor} filter={navfilter} surveys={submittedSurveys} setad={CheckSurvey} />
+                 
+                </>
               }
             />
 
@@ -269,9 +265,11 @@ function App() {
               render={() =>
                 !admin ? <Redirect to="/admin/login" /> :
                   <>
-                    <Col>
-                      {(Questions.length !=0 && Responses.length!=0) ?<AdminSurvey responses={Responses} surveytitle={title} questions={Questions} /> :null}
+                    <Container fluid className="vh-100 d-flex flex-column " style={{backgroundColor: color}}>
+                  <Col  sm={{span:8, offset:2}}>
+                      {(Questions.length !==0 && Responses.length!==0) ?<AdminSurvey responses={Responses} surveytitle={title} questions={Questions} /> :null}
                     </Col>
+                    </Container>
                   </>
               }
             />
@@ -281,29 +279,30 @@ function App() {
                 //!loggedIn ? <Redirect to="/admin/login" /> :
                 !admin ? <Redirect to="/admin/login" /> :
                   <>
-                    <Col>
+                  <Container fluid  className="vh-100 d-flex flex-column " style={{backgroundColor: '#768A95'}}>
+                     <Col  sm={{span:8, offset:2}} >
                       <CreateSurvey addSurvey={addSurvey} admin={id} />
                     </Col>
+                    </Container>
                   </>
               }
             />
 
             <Route exact path="/AllSurveys"
               render={() =>
-                ready ?
-                <>
-                  <UserSurveyList filter={navfilter} surveys={surveysToComplete} setus={FillSurvey} />
-                </>
-                : null
+              <>
+                <UserSurveyList backgroundColor={backgroundColor} filter={navfilter} surveys={surveysToComplete} setus={FillSurvey} />
+              </>
               }
             />
 
             <Route exact path="/AllSurveys/fillinsurvey/:survey"
               render={() =>
-                <>
-                  <Col>
-                    <UserFillInSurvey surveyid={questionssurveyid} surveytitle={title} questions={Questions} fillIn={fillInSurvey} />
+                <><Container fluid  className="vh-100 d-flex flex-column" style={{backgroundColor: color}}>
+                  <Col  sm={{span:8, offset:2}}>
+                    <UserFillInSurvey color={color} surveyid={questionssurveyid} surveytitle={title} questions={Questions} fillIn={fillInSurvey} />
                   </Col>
+                  </Container>
                 </>
               }
             />
@@ -314,7 +313,9 @@ function App() {
         </Row>
 
       </Container>
+      
     </Router>
+
   );
 }
 

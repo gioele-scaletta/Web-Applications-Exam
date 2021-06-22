@@ -3,6 +3,7 @@
 
 const db = require('./db');
 
+//DB methods just used to retrieve or isnert data from/to DB
 
 exports.loadAllSurveys = () => {
     return new Promise((resolve, reject) =>{
@@ -68,8 +69,8 @@ exports.newSurvey = (ad, title)=>{
         const sql = 'INSERT INTO SURVEYS(survey_title, admin_id) VALUES(?,?)';
         db.run(sql, [title, ad], function (err, rows){
             if(err){
-                reject (err);
-                return;
+               reject (err);
+               return;
             } 
         resolve(this.lastID);
         });
@@ -82,8 +83,7 @@ exports.addQuestion = (s_id, qnum, qtext, open, optional, single)=>{
         const sql = 'INSERT INTO QUESTIONS(survey_id, question_number, question_text, open, optional, choices) VALUES(?,?,?,?,?,?)';
         db.run(sql, [s_id, qnum, qtext, open, optional, single], function (err, rows){
             if(err){
-                reject(err);
-                return;
+               reject(err);
             }
         resolve(this.lastID);
         });
@@ -105,15 +105,13 @@ exports.getMaxResponse =() =>{
 };
 
 
-//need to take care of res number creation
 exports.addResponse = (n, surveyid, qnum, response) =>{
  
     return new Promise((resolve, reject) =>{
         const sql = 'INSERT INTO RESPONSES(survey_id, question_num, response_text, response_num) VALUES(?,?,?,?)';
         db.run(sql, [surveyid, qnum, response, n], (err, rows)=>{
             if(err){
-                reject(err);
-                return;
+               reject(err);
             }
            resolve(this.lastID);
         });

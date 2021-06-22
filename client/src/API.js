@@ -1,4 +1,3 @@
-import Survey from './model/Survey'
 const BASEURL = '/api';
 
 async function loadSurveysToComplete(){
@@ -53,7 +52,7 @@ async function getSurveyQuestions(survey){
 
 
 
-function addSurvey(newSurvey){
+async function addSurvey(newSurvey){
   return new Promise((resolve, reject) => {
     fetch('/api/addSurvey', {
         method: 'POST',
@@ -98,8 +97,6 @@ function sendSurvey(surveyresponse){
     }).catch(err => { reject({'error': 'Cannot communicate with the server'})});
   });
 }
-
-
 
 
 async function login(credentials) {

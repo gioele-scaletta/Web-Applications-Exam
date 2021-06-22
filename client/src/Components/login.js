@@ -2,20 +2,17 @@ import {EyeFill} from 'react-bootstrap-icons'
 import { useState } from 'react'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-import Alert from 'react-bootstrap/Alert'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
 
 
-
 const LoginForm = function(props) {
-    const [errorMessage, setErrorMessage] = useState('') ;
     const [passwordType ,setPasswordType] = useState("password");
     const togglePasswordType = ()=>{setPasswordType((old)=> old==="password"? "text" : "password")}
 
-    const myHandleSubmit = (values) => {
+    const myHandleSubmit = async (values) => {
 
         const credentials = { 
             username: values.username,
@@ -40,7 +37,6 @@ const LoginForm = function(props) {
 
     return (
         <Form onSubmit={formik.handleSubmit} >
-            {errorMessage ? <Alert variant='danger'>{errorMessage}</Alert> : ''}
 
             <Form.Group controlID='validationFormik01' >
                 <Form.Label>Username</Form.Label>

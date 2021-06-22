@@ -5,96 +5,104 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Row'
 import { Trash, PencilSquare, ArrowUp, ArrowDown } from 'react-bootstrap-icons'
 
-import { Link, useParams, Redirect} from 'react-router-dom';
+import { Link, Redirect} from 'react-router-dom';
 import {useState} from 'react'
 import Modal from 'react-bootstrap/Modal'
 import Form from 'react-bootstrap/Form'
+import { Container } from 'react-bootstrap'
 
 const CreateSurvey = function(props) {
 
+    //list of questions currently inserted by admin
     const [questions, setQuestions] = useState([]);
-    const [showForm, setShowForm] = useState(false);
-    const [open, setOpen] = useState(false);
+    //used for add/modify question modal opening and closing =1->open asnwer =2->closed
+    const [showForm, setShowForm] = useState(0);
+    //used to set survey title
     const [title, setTitle] = useState('');
+    //used to set qnum of a new question when it is not a question in update
     const [num, setNum] =useState(1);
-    const [submitted, setSubmitted]= useState(false);
-    const [modal, setModal] = useState('');
+    //used to set and transmit the quetion number when the question is updated 
     const [modaln, setModaln] = useState(-1);
+    //triggers redirect when survey is succesfully submitted
+    const [submitted, setSubmitted]= useState(false);
+    //used to transfer question inital values when question is updated
+    const [modal, setModal] = useState('');
+    //valdation
+    const[missing, setMissing] = useState(false);
+    
 
+    //add question to current question list can be called both by closed and open questions
     const addQuestion = async (text, ope, opt, sing) =>{
-        let o;
-        let q, q0;
+        let q;
 
-        if(num==1 && modaln==-1){
-            q0= {qnum: 0, qtext: "Please insert your name below", open: 1, optional: '', single:''};
-            await setQuestions(oldAnswers => [...oldAnswers, q0]);
-        }
-            
-        if(ope){
-        
-            q={qnum: (modaln==-1) ? num : modaln, qtext: text, open: 1, optional: opt ? 1 : 0, single:''};
-        } else{
-            q={qnum: (modaln==-1) ? num : modaln, qtext: text, open: 0, optional: opt, single: sing};
-        }
+        if(ope)
+            q={qnum: (modaln===-1) ? num : modaln, qtext: text, open: 1, optional: opt, single:''};
+        else
+            q={qnum: (modaln===-1) ? num : modaln, qtext: text, open: 0, optional: parseInt(opt), single: parseInt(sing)};
         
         await setQuestions(oldAnswers => oldAnswers.filter((r)=>r.qnum!==modaln));
         await setQuestions(oldAnswers => [...oldAnswers, q]);
-        if(modaln==-1){
-        await setNum(num+1);
-        }
+
+        if(modaln===-1) await setNum(num+1);
 
         await handleCloseForm();
         
     }
     
-
+    //update list of questions in order to move the selected question down of one position
     const Up= function (n) {
 
-         if(n!=0)
-        setQuestions(
-            questions.map((r)=>{
-                
-               if (r.qnum===n-1) r.qnum++;
-               else
-               if (r.qnum===n) r.qnum--;
-             return r;}) );
+        if(n!==1)
+            setQuestions(
+                questions.map((r)=>{
+                    if (r.qnum===n-1) r.qnum++;
+                    else
+                    if (r.qnum===n) r.qnum--;
+                    return r;
+                })
+            );
     }
 
+    //update list of questions in order to move the selected question down of one position
     const Down= (n) =>{
 
         console.log(questions.map((r)=>r.qnum))
         let max=questions.reduce((r,a)=>a.qnum>r.qnum ? a:r);
-        console.log(max);
  
        if((n!==max.qnum))
-        setQuestions(
-         questions.map((r)=>{
-            if (r.qnum===n+1) r.qnum--;
-            else if (r.qnum===n) r.qnum++;
-          return r;}) );
+            setQuestions(
+                questions.map((r)=>{
+                    if (r.qnum===n+1) r.qnum--;
+                    else if (r.qnum===n) r.qnum++;
+                    return r;
+                }) 
+            );
     }
     
+    //delte question from list when delete icon clicked
     const handleDelete= function(n) {
       
         setQuestions(oldAnswers => oldAnswers.filter((r)=>r.qnum!==n));
     
     }
 
-    const handleUpdate= function(bool, init, n, opt, single) {
-        if(!bool)
+    //takes care of opening modal and setting previuos values in case of update icon clicked (the previous values are set using 2 states)
+    const handleUpdate= function(type, init, n, opt, single) {
+
+        if(type===2)
         setModal(init+"|"+opt+"|"+single);
         else
         setModal(init+"|"+opt)
         
         setModaln(n);
-        handleShowForm(bool);
+        handleShowForm(type);
     
     }
 
-
+    //When admin submits survey the already 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        if(questions.length>0 && title.length>0){ //VALIDATION
+        if(questions.length>0 && title.length>0 && !title.isEmpty()){ //VALIDATION
         let questionsToBeSent = [];
         let n={Title: title, admin: props.admin}
         await  questionsToBeSent.push(n);
@@ -104,84 +112,122 @@ const CreateSurvey = function(props) {
         await props.addSurvey(questionsToBeSent);
         await setSubmitted(true);
     } else{
-        let mes =alert("Please insert at least question and the title of the survey to submit the survey");
-       // setTimeout(function(){ clearTimeout(mes) }, 2000);
+        setMissing(true);
+        //alert("Please insert at least question and the title of the survey to submit the survey");
     }
         
     };
 
+    //close modal form and reset modal update values to default
     const handleCloseForm = () => {
-        setShowForm(false);
+        setShowForm(0);
         setModal('');
         setModaln(-1);
     }
 
-    const handleShowForm = (open) =>{ setOpen(open);setShowForm(true);}
+    const handleShowForm = (open) =>{ setShowForm(open);}
 
-    return (<>  {submitted ? <Redirect to="/admin" /> :null}
-        <Row>
-        <Form>
-        <Form.Group >
-                <Form.Label>Insert Survey title here</Form.Label>
-                <Form.Control type='text' onChange={(ev)=>setTitle(ev.target.value)} />
-            </Form.Group>
-        </Form>
-        </Row> 
-        {questions ? questions.sort((a,b) =>(a.qnum-b.qnum) ).map( (q) => q.open ?
-        <> <br></br>
-        <br></br>
-            <OpenAnswerForm key={q.qnum} id={q.qnum} question={q.qtext} optional={q.optional} response={"         "}
-            />
-             < Trash color="blue" href="#" onClick={()=>handleDelete(q.qnum)} />
-                            < PencilSquare color="blue" onClick={()=>handleUpdate(true, q.qtext, q.qnum, q.optional, '')} />
-                            < ArrowUp color="blue" onClick={()=>Up(q.qnum)} /> 
-                            < ArrowDown color="blue" onClick={()=>Down(q.qnum)} /> 
-            </>
-            :
-            <> <br></br>
-            <br></br><Col sm={5}>
-            <CloseAnswerForm key={q.qnum} id={q.qnum} question={q.qtext} optional={q.optional} single={q.single} response={"0|0|0|0"}
-            /></Col>
-             < Trash color="blue" href="#" onClick={()=>handleDelete(q.qnum)} />
-                            < PencilSquare color="blue" onClick={()=>handleUpdate(false, q.qtext, q.qnum, q.optional, q.single)} /> 
-                            < ArrowUp color="blue" onClick={()=>Up(q.qnum)} /> 
-                            < ArrowDown color="blue" onClick={()=>Down(q.qnum)} /> 
+    return (
+                <>  
+                    {submitted ? <Redirect to="/admin" /> :null}
+                    <Row>
+                        <Form>
+                            <Form.Group >
+                                <Form.Label  className="mt-4 md-3">Insert Survey title here</Form.Label>
+                                {missing ?
+                                    <>
+                                        <Form.Control type='text' value={title} onChange={(ev)=>setTitle(ev.target.value)} required isInvalid />
+                                        <Form.Control.Feedback type="invalid">
+                                            Please insert at least question and the title of the survey to submit the survey
+                                        </Form.Control.Feedback>
+                                   </>
+                                :
+                                    <Form.Control type='text' value={title} onChange={(ev)=>setTitle(ev.target.value)} />
+                                }
+                            </Form.Group>
+                        </Form>
+                    </Row> 
+                    {questions ? questions.sort((a,b) =>(a.qnum-b.qnum))
+                        .map( (q) => q.open ?
+                            <> <br></br> <br></br>
+                                <OpenAnswerForm key={q.qnum} id={q.qnum} question={q.qtext} optional={q.optional} response={"         "}/>
+                                
+                                <Container align="right" >
+                                < ArrowUp color="blue" className="m-3" size={25} onClick={()=>Up(q.qnum)} /> 
+                                < ArrowDown color="blue" className="m-3"size={25} onClick={()=>Down(q.qnum)} />
+                                < Trash color="blue" className="m-3" size={25} href="#" onClick={()=>handleDelete(q.qnum)} /> 
+                                < PencilSquare color="blue" className="m-3" size={25} onClick={()=>handleUpdate(1, q.qtext, q.qnum, q.optional, '')} />
+                                </Container>
 
-            </>
-        ) : null}
+                               
+                               
+                            </>
+                            :
+                            <> <br></br><br></br>
+                                <Col sm={5}>
+                                    <CloseAnswerForm key={q.qnum} id={q.qnum} question={q.qtext} optional={q.optional} single={q.single} response={"0|0|0|0"}/>
+                                </Col>
+                                <Container align="right" >
+                                < ArrowUp color="blue" className="m-3" size={25} onClick={()=>Up(q.qnum)} /> 
+                                < ArrowDown color="blue" className="m-3"size={25} onClick={()=>Down(q.qnum)} />
+                                < Trash color="blue" className="m-3" size={25} href="#" onClick={()=>handleDelete(q.qnum)} /> 
+                                < PencilSquare color="blue" className="m-3" size={25} onClick={()=>handleUpdate(2, q.qtext, q.qnum, q.optional, q.single)} />
+                                </Container>
+                            </>
+                        ) 
+                    : null}
 
-        <Modal show={showForm}  >
-            <Modal.Header >
-                <Modal.Title>Add new Question</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                {open ? <AddOpenEnded init={modal}  addQuestion={addQuestion} handleCloseForm={handleCloseForm} /> :  <AddCloseEnded init={modal} addQuestion={addQuestion}   handleCloseForm={handleCloseForm} /> }
-            </Modal.Body>
-        </Modal>
-  
-        <br></br>
-            <Button variant="primary" size="sm" onClick={()=>handleShowForm(true)}>Add Open-ended question</Button> {'  '}<Button variant="primary" size="sm" onClick={()=>handleShowForm(false)}>Add Closed-answer question</Button>
-            <br></br>
-            <br></br>
-            <br></br>
-          <Link to="/admin"><Button onClick={handleSubmit}>Submit survey</Button></Link>  {'  '} <Link to="/admin"><Button variant='secondary'> Cancel </Button></Link>
-        
-    </>);
+                    <Modal show={showForm===1 || showForm===2}>
+                        <Modal.Header >
+                            <Modal.Title>Add new Question</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            {(showForm===1) ? <AddOpenEnded init={modal}  addQuestion={addQuestion} handleCloseForm={handleCloseForm} /> : (showForm===2) ? <AddCloseEnded init={modal} addQuestion={addQuestion}   handleCloseForm={handleCloseForm} /> : null}
+                        </Modal.Body>
+                    </Modal>
+            
+                    <br></br>
+                    <br></br>
+
+                    <Col align="left">
+                        <Button variant="primary" style={{marginLeft: "10px" , marginRight:"35px",  border:0, outline:0}} className="w-25" size="sm" onClick={()=>handleShowForm(1)}>Add Open-ended question</Button> 
+                        <Button variant="primary" style={{  border:0}} size="sm"   className="w-25" onClick={()=>handleShowForm(2)}>Add Closed-answer question</Button>
+                    </Col>
+
+                    <br></br>
+                    <br></br>
+                    <br></br>
+                   
+                    <Col align="right" className="bottom m-2">
+                        <div style={{display: 'inline'}}>
+                            <Link to="/admin"><Button className="w-25" variant='secondary'> Cancel </Button></Link> 
+                            <Button style={{marginLeft:"30px"}} className="w-25" variant="dark" onClick={handleSubmit}> Submit survey </Button>
+                        </div>
+                    </Col>
+                    
+                </>
+            );
     }
 
 
  function AddOpenEnded(props) {
 
+    //question title
     const [text, setText] = useState(props.init.split("|")[0]);
-    const [opt, setOpt] = useState(props.init.split("|")[1]);
-    
+    //question optional?
+    const [opt, setOpt] = useState(props.init.split("|")[1]==='1' ? true : false);   
+    //validatio
+    const [missing, setMissing] = useState(false);
 
+    //on successful open question submit add question to survey list of question
     const ifSubmit = () => {
      
-        if(text.length>0){
-        props.addQuestion(text,  true, opt, '');
+        if(text.length>0 && !text.isEmpty()){
+            setMissing(false);
+            props.addQuestion(text,  true, opt===true ? 1 : 0 , '');
         } else{
-           alert("Please insert a question in the inpute text box");
+            setMissing(true);
+            //alert("Please insert a question in the inpute text box");
         }
  
     };
@@ -191,22 +237,27 @@ const CreateSurvey = function(props) {
         <Form>
             <Form.Group >
                 <Form.Label>Insert question</Form.Label>
-                <Form.Control type='text' value={text} onChange={(ev)=>setText(ev.target.value)} />
-                <Form.Check  type="checkbox" value={opt} onChange={(ev) => setOpt(ev.target.checked)} label={"Thick the box to make the question mandatory"}/>
+                {missing ?
+                    <>
+                        <Form.Control type='text' value={text} onChange={(ev)=>setText(ev.target.value)} required isInvalid/>
+                        <Form.Control.Feedback type="invalid">
+                                    Please insert a Question
+                        </Form.Control.Feedback>
+                    </>
+                    :
+                    <Form.Control type='text' value={text} onChange={(ev)=>setText(ev.target.value)} />
+                }
+                <Form.Check  type="checkbox" checked={opt} onChange={(ev) => setOpt(ev.target.checked)} label={"Thick the box to make the question mandatory"}/>
             </Form.Group>
             <Row>
               
             </Row>
         </Form>
-        <Row>
-        <Col xs={{ offset: 2 }}>
-                    <Button type="submit" onClick={()=>ifSubmit()}>Save</Button>
-                </Col>
-               
-         <Col xs={{ offset: 1 }}>
-         <Button variant='secondary' onClick={()=>props.handleCloseForm()}>Cancel</Button>
-     </Col>
-     </Row>
+        
+       <div align="right">
+            <Button className="m-3" variant='secondary' onClick={()=>props.handleCloseForm()}>Cancel</Button>        
+            <Button className="m-3" type="submit" variant="dark" onClick={()=>ifSubmit()}> Save Question </Button>  
+        </div>
      </>
 
     )
@@ -215,128 +266,154 @@ const CreateSurvey = function(props) {
 
 function AddCloseEnded(props) {
 
+    //Question title (only at the end merged with checkbox questions)
     const [text, setText] = useState(props.init.split("|")[0]);
+    //current checkbox questions text. Only at the end the content is moved into text (if it is done before it is impossible to modify again question)
     const [checkboxtext, setCheckboxtext] = useState(props.init.split("|").splice(0,props.init.split("|").length-2).join("|"));
+    //tmp variable used to set single checkboxtext. After single check text submit then content is moved to checkboxtext where all questions text are stored
     const [texttmp, setTexttmp] = useState('');
+    //states used to set inital values when modal is used for an update
     const [opt, setOpt]= useState (props.init.split("|")[props.init.split("|").length-2] ); 
     const [sing, setSing]= useState(props.init.split("|")[props.init.split("|").length-1] );  
+    //state used to toggle between add and confirm checkbox text buttons
     const [showplus, setShowplus] =useState(true);
-    const [validation, setValidation] =useState ()
+    //validation states
+    const [valMinMax, setValMinMax] =useState(false)
+    const [missing, setMissing] = useState(false);
+    const [valText, setValText] = useState(false);
 
     const ifSubmit = async () => {
      
-       
-     
-        if(text.length>0 && checkboxtext.length>0){
-            if(/^\d+$/.test(opt)) {
-            await props.addQuestion(text+checkboxtext.replace(text,''), false, opt ? opt : 0, sing ? sing : 10);
+        if(text.length>0 && checkboxtext.length>0 && !text.isEmpty()){//VALIDATION
+                setMissing(false);
+            if(/^\d+$/.test(opt) && /^\d+$/.test(opt) && opt<=sing && sing<checkboxtext.split('|').length) { //VALIDATION STEP 2
+                setValMinMax(false);
+                await props.addQuestion(text+checkboxtext.replace(text,''), false, opt , sing);  //merge all questions text in one string
             }else{
-                alert("Min and max attributes should be numbers!")
+                //alert("Min and max attributes should be numbers!")
+                setValMinMax(true);
             }
-
-            } else{
-
-
-                alert("Please inserT a Question and at least one checkbox")
-
-                /* CAN THINK ABOUT USING FLAGS AND THIS FORM BOOT VAL
-                if(text.length<=0)
-            setValidation(1);
-            if(checkboxtext.length<=0)
-            setValidation(2);
-            <InputGroup hasValidation>
-  <InputGroup.Prepend>
-    <InputGroup.Text>@</InputGroup.Text>
-  </InputGroup.Prepend>
-  <Form.Control type="text" required isInvalid />
-  <Form.Control.Feedback type="invalid">
-    Please choose a username.
-  </Form.Control.Feedback>
-</InputGroup>
-            */
+            } else{ //VALIDATION
+                //alert("Please insert a Question and at least one checkbox")
+                setMissing(true);
 
             }
-     
-            //for the min and max value we have choosen to put 0 and 10 as defautl values if the user doesn' select anything in 
-            //order not to constrain too much the user
      
     };
 
+    //toggle form add checkbox button to confimr checkbox text button
     const toggle = ()=>{
         setShowplus(!showplus);
     }
 
+    //merge of new checkbox question text with prevous ones
     const append = ()=>{
-        if(texttmp.length>0){
-        setShowplus(!showplus);
-        setCheckboxtext(checkboxtext +'|'+texttmp);
+        if(texttmp.length>0 && !texttmp.isEmpty()){
+            setValText(false);
+            setShowplus(!showplus);
+            setCheckboxtext(checkboxtext +'|'+texttmp);
+            setTexttmp('');
         } else{
-            alert("Please insert some checkbox text")
+            setValText(true);
+            //alert("Please insert some checkbox text")
         }
     }
 
     const handleDelete= (q)=>{
-        
-        setCheckboxtext( checkboxtext.split("|").filter((r)=>r!=q).join("|"));
+        setCheckboxtext( checkboxtext.split("|").filter((r)=>r!==q).join("|"));
     }
 
 
     return (<>
         <Form >
             <Form.Group>
-                <Form.Label>Insert question</Form.Label>
-                
-          
-                 <Form.Control type='text' value={text}  onChange={(ev)=>setText(ev.target.value)} />
-                 
-                
-         </Form.Group>
-      
-            <Form.Group >
-              <Form.Label>Min number of answers that can be selected</Form.Label>
-              <Form.Control type='text'  value={opt}  onChange={(ev)=>setOpt(ev.target.value)} />
-        
-          </Form.Group>
-          <Form.Group>
-              <Form.Label>Max number of answers that can be selected</Form.Label>
-              <Form.Control type='text' value={sing} onChange={(ev)=>setSing(ev.target.value)} />
-          </Form.Group>
-          
+                {missing ? 
+                    <>
+                        <Form.Label>Insert question</Form.Label> 
+                        <Form.Control type='text' value={text}  onChange={(ev)=>setText(ev.target.value)} required isInvalid />
+                        <Form.Control.Feedback type="invalid">
+                            Please insert a Question and at least one checkbox
+                        </Form.Control.Feedback>
+                    </>
+                :    
+                    <>
+                        <Form.Label>Insert question</Form.Label>
+                        <Form.Control type='text' value={text}  onChange={(ev)=>setText(ev.target.value)} /> 
+                    </>
+                }               
+            </Form.Group>
+                {valMinMax ?
+                    <>
+                        <Form.Group>
+                            <Form.Label>Min number of answers that can be selected</Form.Label>
+                            <Form.Control type='text'  value={opt}  onChange={(ev)=>setOpt(ev.target.value)}  required isInvalid/>
+                        </Form.Group>
+                        <Form.Group>
+                            <Form.Label>Max number of answers that can be selected</Form.Label>
+                            <Form.Control type='text' value={sing} onChange={(ev)=>setSing(ev.target.value)}  required isInvalid />
+                       
+                        <Form.Control.Feedback type="invalid">
+                            Min and Max fields should be valid numbers.
+                        </Form.Control.Feedback>
+                        </Form.Group>
+                    </>
+                :
+                    <>
+                       <Form.Group>
+                            <Form.Label>Min number of answers that can be selected</Form.Label>
+                            <Form.Control type='text'  value={opt}  onChange={(ev)=>setOpt(ev.target.value)} />
+                        </Form.Group>
+                        <Form.Group>
+                            <Form.Label>Max number of answers that can be selected</Form.Label>
+                            <Form.Control type='text' value={sing} onChange={(ev)=>setSing(ev.target.value)} />
+                        </Form.Group>
+                    </>
+                }
+
         </Form>
         <br></br>
         <br></br>
         <Form>
-        {showplus ? <Button onClick={toggle}>Add checkbox</Button> : null}
+            {showplus ? <Button onClick={toggle}>Add checkbox</Button> : null}
             {!showplus ?
-            <Form.Group  >
-                <Form.Label>Insert checkbox answer</Form.Label>
-                <Form.Control type='text' onChange={(ev)=>setTexttmp(ev.target.value)} />
-            </Form.Group> : null}
-            {!showplus ? <Button onClick={()=>append()}> Confirm checkbox text </Button> : null}
+                <Form.Group  >
+                    <Form.Label>Insert checkbox answer</Form.Label>
+                    {valText ?
+                        <>
+                            <Form.Control type='text' onChange={(ev) => setTexttmp(ev.target.value)} required isInvalid />
+                            <Form.Control.Feedback type="invalid">
+                                Please insert some text in the question
+                            </Form.Control.Feedback>
+                        </>
+                        :
+                        <Form.Control type='text' onChange={(ev) => setTexttmp(ev.target.value)} />
+                    }
+
+                </Form.Group> : null}
+            {!showplus ? <Button onClick={() => append()}> Confirm checkbox text </Button> : null}
             <br></br>
-        <br></br>
+            <br></br>
             <Form.Group controlId="exampleForm.ControlTextarea1">
                 {checkboxtext ? checkboxtext.split('|').splice(1,).map((q) =>
-                <>
-               <Form.Check  type="checkbox" label={q}/>
-               < Trash color="blue"  onClick={()=>handleDelete(q)} />
-               </>
-                 ) : null}
+                    <>
+                        <Form.Check type="checkbox" label={q} />
+                        < Trash color="blue" onClick={() => handleDelete(q)} />
+                    </>
+                ) : null}
             </Form.Group>
         </Form>
-        
-           <Row>
-           <Col xs={{ offset: 2 }}>
-               <Button type="submit" onClick={()=>ifSubmit()}>Save</Button>
-           </Col>
-           <Col xs={{ offset: 1 }}>
-               <Button variant='secondary' onClick={()=>props.handleCloseForm()}>Cancel</Button>
-           </Col>
-       </Row>
-        </>
+
+        <div align="right">
+            <Button className="m-3" variant='secondary' onClick={()=>props.handleCloseForm()}>Cancel</Button>        
+            <Button className="m-3" type="submit" variant="dark" onClick={()=>ifSubmit()}> Save Question  </Button>  
+        </div>
+    </>
     )
 
 }
 
+String.prototype.isEmpty = function() {
+    return (this.length === 0 || !this.trim());
+};
 
 export default CreateSurvey
