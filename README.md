@@ -7,13 +7,13 @@
 
 - Route `/allsurveys/fillinsurvey/:surveyid/:surveytitle`: The page where the survey is actually filled in. The params are the id of the survey and the title of the survey that is being filled in
 
-- Route `/admin/login`: When a user wants to log in or tries to access an admin functionality, but it is not logged in he is brought to this page. After inserting correct username+password it is brught to "/admin"
+- Route `/admin/login`: When a user wants to log in or tries to access an admin functionality without being logged in, he is brought to this page. After inserting correct username+password it is brught to "/admin"
 
-- Route `/admin`: The page where all the surveys of the logged in admin are showed. By clicking on a survey the admin can chck the answers to that survey. In this page there is also a button to create a new survey.
+- Route `/admin`: The page where all the surveys of the logged in admin are showed. By clicking on a survey the admin can click the answers to that survey. In this page there is also a button to create a new survey.
 
 - Route `/admin/createsurvey` : In this page a new survey is created by a logged admin
 
-- Route `/admin/surveyresults/:survey/:title` : This is the page that opens up when an admin wants to see the answers for a specific survey. Again the params are survey(id of the survey) and title (title of the survey)
+- Route `/admin/surveyresults/:survey/:title` : This is the page that opens up when an admin wants to see the answers for a specific survey. The params are survey(id of the survey) and title (title of the survey)
 
 
 
