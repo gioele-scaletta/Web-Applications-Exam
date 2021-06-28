@@ -1,0 +1,6 @@
+[dev b9dcefb] version_2.0_miss-
+ 18 files changed, 394 insertions(+), 254 deletions(-)
+ rewrite client/src/Components/SurveyCard.js (61%)
+ rewrite client/src/Components/UserFillInSurvey.js (62%)
+ create mode 100644 client/src/Components/tmp
+ create mode 100644 client/src/model/Survey.js
