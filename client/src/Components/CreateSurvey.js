@@ -35,6 +35,8 @@ const CreateSurvey = function(props) {
     const addQuestion = async (text, ope, opt, sing) =>{
         let q;
 
+        console.log(text);
+
         if(ope)
             q={qnum: (modaln===-1) ? num : modaln, qtext: text, open: 1, optional: opt, single:''};
         else
@@ -89,6 +91,7 @@ const CreateSurvey = function(props) {
     //takes care of opening modal and setting previuos values in case of update icon clicked (the previous values are set using 2 states)
     const handleUpdate= function(type, init, n, opt, single) {
 
+        console.log(init+"|"+opt+"|"+single);
         if(type===2)
         setModal(init+"|"+opt+"|"+single);
         else
@@ -135,7 +138,7 @@ const CreateSurvey = function(props) {
                     <Row>
                         <Form>
                             <Form.Group >
-                                <Form.Label  className="mt-4 md-3">Insert Survey title here</Form.Label>
+                                <Form.Label  style={{fontSize: '115%', fontWeight: '600'}} className="mt-4 md-3">Insert Survey title here</Form.Label>
                                 {missing ?
                                     <>
                                         <Form.Control type='text' value={title} onChange={(ev)=>setTitle(ev.target.value)} required isInvalid />
@@ -148,31 +151,37 @@ const CreateSurvey = function(props) {
                                 }
                             </Form.Group>
                         </Form>
+                     
                     </Row> 
+                    <br></br><br></br><hr/>
                     {questions ? questions.sort((a,b) =>(a.qnum-b.qnum))
                         .map( (q) => q.open ?
                             <> <br></br> <br></br>
                                 <OpenAnswerForm key={q.qnum} id={q.qnum} question={q.qtext} optional={q.optional} response={"         "}/>
                                 
                                 <Container align="right" >
-                                < ArrowUp color={iconcolor} className="m-3" size={25} onClick={()=>Up(q.qnum)} /> 
-                                < ArrowDown color={iconcolor} className="m-3"size={25} onClick={()=>Down(q.qnum)} />
-                                < PencilSquare color={iconcolor} className="m-3" size={25} onClick={()=>handleUpdate(1, q.qtext, q.qnum, q.optional, '')} />
-                                < Trash color={iconcolor} className="m-3" size={25} href="#" onClick={()=>handleDelete(q.qnum)} /> 
+                                {q.qnum!==1 ?  < ArrowUp color={iconcolor} className="m-3" size={20} onClick={()=>Up(q.qnum)} /> : null}
+                               {q.qnum!==questions.reduce((r,a)=>a.qnum>r.qnum ? a:r).qnum ? < ArrowDown color={iconcolor} className="m-3"size={20} onClick={()=>Down(q.qnum)} /> : null}
+                                < PencilSquare color={iconcolor} className="m-3" size={20} onClick={()=>handleUpdate(1, q.qtext, q.qnum, q.optional, '')} />
+                                < Trash color={iconcolor} className="m-3" size={20} href="#" onClick={()=>handleDelete(q.qnum)} /> 
                                 </Container>
+                                <br></br>
+                                <br></br><hr/><br></br>
 
                             </>
                             :
                             <> <br></br><br></br>
-                                <Col sm={5}>
+                                
                                     <CloseAnswerForm key={q.qnum} id={q.qnum} question={q.qtext} optional={q.optional} single={q.single} response={"0|0|0|0"}/>
-                                </Col>
+                                
                                 <Container align="right" >
-                                < ArrowUp color={iconcolor} className="m-3" size={25} onClick={()=>Up(q.qnum)} /> 
-                                < ArrowDown color={iconcolor} className="m-3"size={25} onClick={()=>Down(q.qnum)} />
-                                < PencilSquare color={iconcolor} className="m-3" size={25} onClick={()=>handleUpdate(2, q.qtext, q.qnum, q.optional, q.single)} />
-                                < Trash color={iconcolor} className="m-3" size={25} href="#" onClick={()=>handleDelete(q.qnum)} /> 
+                                {q.qnum!==1 ? < ArrowUp color={iconcolor} className="m-3" size={20} onClick={()=>Up(q.qnum)} /> : null }
+                                {q.qnum!==questions.reduce((r,a)=>a.qnum>r.qnum ? a:r).qnum ? < ArrowDown color={iconcolor} className="m-3"size={20} onClick={()=>Down(q.qnum)} /> : null}
+                                < PencilSquare color={iconcolor} className="m-3" size={20} onClick={()=>handleUpdate(2, q.qtext, q.qnum, q.optional, q.single)} />
+                                < Trash color={iconcolor} className="m-3" size={20} href="#" onClick={()=>handleDelete(q.qnum)} /> 
                                 </Container>
+                                <br></br>
+                                <br></br><hr/><br></br>
                             </>
                         ) 
                     : null}
@@ -204,7 +213,9 @@ const CreateSurvey = function(props) {
                             <Button style={{marginLeft:"30px"}} className="w-25" variant="dark" onClick={()=>handleSubmit()}> Submit survey </Button>
                         </div>
                     </Col>
-                    
+                    <br></br>
+        <br></br>
+           <br></br>
                 </>
             );
     }
@@ -224,7 +235,7 @@ const CreateSurvey = function(props) {
      
         if(text.length>0 && !text.isEmpty()){
             setMissing(false);
-            props.addQuestion(text,  true, opt===true ? 1 : 0 , '');
+            props.addQuestion(text.replaceAll("|", "\u20D2"),  true, opt===true ? 1 : 0 , '');
         } else{
             setMissing(true);
             //alert("Please insert a question in the inpute text box");
@@ -236,7 +247,7 @@ const CreateSurvey = function(props) {
     return (<>
         <Form>
             <Form.Group >
-                <Form.Label>Insert question</Form.Label>
+                <Form.Label className ='w-100'>Insert question</Form.Label>
                 {missing ?
                     <>
                         <Form.Control type='text' value={text} onChange={(ev)=>setText(ev.target.value)} required isInvalid/>
@@ -269,7 +280,7 @@ function AddCloseEnded(props) {
     //Question title (only at the end merged with checkbox questions)
     const [text, setText] = useState(props.init.split("|")[0]);
     //current checkbox questions text. Only at the end the content is moved into text (if it is done before it is impossible to modify again question)
-    const [checkboxtext, setCheckboxtext] = useState(props.init.split("|").splice(0,props.init.split("|").length-2).join("|"));
+    const [checkboxtext, setCheckboxtext] = useState(props.init.split("|").splice(1,props.init.split("|").length-3).join("|"));
     //tmp variable used to set single checkboxtext. After single check text submit then content is moved to checkboxtext where all questions text are stored
     const [texttmp, setTexttmp] = useState('');
     //states used to set inital values when modal is used for an update
@@ -286,9 +297,9 @@ function AddCloseEnded(props) {
      
         if(text.length>0 && checkboxtext.length>0 && !text.isEmpty()){//VALIDATION
                 setMissing(false);
-            if(/^\d+$/.test(opt) && /^\d+$/.test(opt) && opt<=sing && sing<checkboxtext.split('|').length) { //VALIDATION STEP 2
+            if(/^\d+$/.test(opt) && /^\d+$/.test(opt) && opt<=sing && sing<=checkboxtext.split('|').length) { //VALIDATION STEP 2
                 setValMinMax(false);
-                props.addQuestion(text+checkboxtext.replace(text,''), false, opt , sing);  //merge all questions text in one string
+                props.addQuestion(text.replaceAll("|", "\u20D2")+"|"+checkboxtext, false, opt , sing);  //merge all questions text in one string
             }else{
                 //alert("Min and max attributes should be numbers!")
                 setValMinMax(true);
@@ -311,7 +322,10 @@ function AddCloseEnded(props) {
         if(texttmp.length>0 && !texttmp.isEmpty()){
             setValText(false);
             setShowplus(!showplus);
-            setCheckboxtext(checkboxtext +'|'+texttmp);
+            if(checkboxtext)
+                setCheckboxtext(checkboxtext + '|'  + texttmp.replaceAll("|", "\u20D2"));
+            else //se è la prima domanda
+            setCheckboxtext(texttmp.replaceAll("|", "\u20D2"));
         } else{
             setValText(true);
             //alert("Please insert some checkbox text")
@@ -393,11 +407,15 @@ function AddCloseEnded(props) {
             <br></br>
             <br></br>
             <Form.Group controlId="exampleForm.ControlTextarea1">
-                {checkboxtext ? checkboxtext.split('|').splice(1,).map((q) =>
-                    <>
-                        <Form.Check type="checkbox" label={q} />
-                        < Trash color="blue" onClick={() => handleDelete(q)} />
-                    </>
+                {checkboxtext ? checkboxtext.split('|').map((q) =>
+             <Form.Group  >
+                   <Trash color='#000000'  className="m-1" size={20}   onClick={() => handleDelete(q)} /> 
+                 <Form.Check className="m-3" style={{marginRight: '10'}}  inline checked={false} label={q}/>{'  '}{'    '}
+             
+               
+                  </Form.Group>
+                       
+                 
                 ) : null}
             </Form.Group>
         </Form>

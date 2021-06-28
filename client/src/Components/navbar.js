@@ -13,10 +13,10 @@ const NavBar = function (props) {
         <>
             <Navbar bg="dark" variant="dark" expand="lg">
 
-                <BarChartFill color="white" size={50} className="m-2" />
+            <Link to='/allsurveys'><BarChartFill color="white" size={50} className="m-2" /></Link>
                 <Navbar.Brand >Survey Manager</Navbar.Brand>
 
-                <Link to='/AllSurveys'> <Nav.Item  variant="primary" className="m-3" >Home</Nav.Item></Link>
+                <Link to='/allsurveys'> <Nav.Item  variant="primary" className="m-3" >Home</Nav.Item></Link>
 
                 <Link to='/admin'> <Nav.Item variant="primary" >Admin</Nav.Item></Link>
 
@@ -35,9 +35,15 @@ const NavBar = function (props) {
                     {props.logged ?
                         <>
                             <NavDropdown title="Logout" id="basic-nav-dropdown" color="white">
-                                <NavDropdown.Item onClick={props.logout} eventKey="1">logout</NavDropdown.Item>
+                              <NavDropdown.Item onClick={props.logout} eventKey="1">logout</NavDropdown.Item>
                             </NavDropdown>
-                        </> : null
+                        </> : 
+                          <>
+                          <NavDropdown title="Login" id="basic-nav-dropdown" color="white">
+                            <NavDropdown.Item as={Link} to='/admin/login' eventKey="2"> login</NavDropdown.Item> 
+                          </NavDropdown>
+                        
+                      </>
                     }
                 </Navbar.Collapse>
 

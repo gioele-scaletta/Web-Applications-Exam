@@ -22,7 +22,7 @@ exports.loadAllSurveys = () => {
 //anche n users!
 exports.loadAdminSurveys = (id) => {
     return new Promise((resolve, reject) =>{
-        const sql = 'SELECT S.survey_id, S.survey_title, COUNT (DISTINCT R.response_num) AS nusers FROM SURVEYS AS S, RESPONSES AS R WHERE S.survey_id=R.survey_id AND S.admin_id=? GROUP BY S.survey_id, S.survey_title';
+        const sql = 'SELECT SURVEYS.survey_id, SURVEYS.survey_title, COALESCE(COUNT (DISTINCT RESPONSES.response_num)+1, 1) AS nusers FROM SURVEYS LEFT JOIN RESPONSES ON SURVEYS.survey_id=RESPONSES.survey_id WHERE SURVEYS.admin_id=? GROUP BY SURVEYS.survey_id, SURVEYS.survey_title';
         db.all(sql, [id], (err, rows)=>{
             if(err){
                 reject(err);
@@ -34,10 +34,10 @@ exports.loadAdminSurveys = (id) => {
     });
 };  
 
-exports.loadSurveyResponses = (rsid) => {
+exports.loadSurveyResponses = (rsid, uid) => {
     return new Promise((resolve, reject) =>{
-        const sql = 'SELECT * FROM RESPONSES WHERE survey_id=?';
-        db.all(sql, [rsid], (err, rows)=>{
+        const sql = 'SELECT * FROM RESPONSES JOIN SURVEYS ON SURVEYS.survey_id=RESPONSES.survey_id WHERE RESPONSES.survey_id=? AND SURVEYS.admin_id=?';  //check that roght admin is asking for responses
+        db.all(sql, [rsid, uid], (err, rows)=>{
             if(err){
                 reject(err);
                 return;

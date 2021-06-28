@@ -8,8 +8,10 @@ const userDao = require('./user_dao'); //auth db access
 const session = require('express-session');
 const dao = require('./dao'); // module for accessing the DB
 
-let cnt = 0;
+
 /*** Set up Passport ***/
+// set up the "username and password" login strategy
+// by setting a function to verify username and password
 passport.use(new LocalStrategy(
   function (username, password, done) {
     userDao.getUser(username, password).then((user) => {
@@ -21,10 +23,13 @@ passport.use(new LocalStrategy(
   }
 ));
 
+// serialize and de-serialize the user (user object <-> session)
+// we serialize the user id and we store it in the session: the session is very small in this way
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
+// starting from the data in the session, we extract the current (logged-in) user
 passport.deserializeUser((id, done) => {
   userDao.getUserById(id).then((user) => {
     done(null, user); // req.user
@@ -38,9 +43,11 @@ passport.deserializeUser((id, done) => {
 const app = new express();
 const PORT = 3001;
 
+// set-up the middlewares
 app.use(morgan('dev'));
 app.use(express.json()); // parse the body in JSON format => populate req.body attributes
 
+// custom middleware: check if a given request is coming from an authenticated user
 const isLoggedIn = (req, res, next) => {
   if (req.isAuthenticated()) {
     return next();
@@ -61,6 +68,10 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+
+//APIs:
+
+
 //Get all surveys (just title and id) to make normal user choose (no need for authentication)
 app.get('/api/surveysToComplete', (req, res) => {
   dao.loadAllSurveys()
@@ -70,15 +81,15 @@ app.get('/api/surveysToComplete', (req, res) => {
 
 //Get all surveys created by a certain admin together with the number of user who completed it
 app.get('/api/submittedSurveys', isLoggedIn, async (req, res) => {
-  dao.loadAdminSurveys(req.user.id)
+  dao.loadAdminSurveys(req.user.id) //directly use user id so we check that admin requesting his survey is effectively loged in
     .then(((s) => { res.json(s); }))
     .catch((err) => { console.log(err); res.status(500).json(err); });
 });
 
-//Get all the responses for a certain survey (need to check loig in and also that the right admin is requesting the survey) 
-//(both authenticatin and authorization)
+//Get all the responses for a certain survey (need to check log in and also that the right admin is requesting the survey) 
+//(both authentication and authorization)
 app.get('/api/surveyResults/:survey', isLoggedIn, (req, res) => {
-  dao.loadSurveyResponses(req.params.survey, req.admin)
+  dao.loadSurveyResponses(req.params.survey, req.user.id)
     .then(((s) => { res.json(s); }))
     .catch((err) => { res.status(500).json(err); });
 });
@@ -96,19 +107,20 @@ app.get('/api/surveyQuestions/:survey', (req, res) => {
 //After creating a new survey in the DB by calling dao.newSurvey(),
 //we scan the list and add each question one by one to the db by calling dao.addQuestion()
 app.post('/api/addSurvey', isLoggedIn, async (req, res) => {
-  if(req.body.length<=1){ 
-     res.status(500).json("wrong or inconsostent Survey format");//backend validation for survey info
+  if (req.body.length <= 1) {
+    res.status(500).json("wrong or inconsostent Survey format");//backend validation for survey info
   }
-  
+
   //doing validation int his way it will be a little bit slower because we have to scan data twice but in this way we don't risk to insert invalid data and then later rollback
   //I evaluated the additional dealy as still ok in this case
-  req.body.forEach((q,index)=> {    
-    if(index!=0){
-    if ( ((q.qtext.length < 0) || (q.qnum < 0) || !(q.open === 1 || q.open === 0) || q.optional < 0) ||  //backend validation for questions
-     ( (q.open === 0) && ((q.single < q.optional) || (q.single > (q.qtext.split("|").length - 1))) ) //backend validation specific to closed answer
-    ){
-      res.status(500).json("wrong or inconsostent Question format");
-    }}
+  req.body.forEach((q, index) => {
+    if (index != 0) {
+      if (((q.qtext.length < 0) || (q.qnum < 0) || !(q.open === 1 || q.open === 0) || q.optional < 0) ||  //backend validation for questions
+        ((q.open === 0) && ((q.single < q.optional) || (q.single > (q.qtext.split("|").length - 1)))) //backend validation specific to closed answer
+      ) {
+        res.status(500).json("wrong or inconsostent Question format");
+      }
+    }
   });
 
   let s_id;
@@ -119,34 +131,34 @@ app.post('/api/addSurvey', isLoggedIn, async (req, res) => {
   catch (error) {
     res.status(500).json(error);
   }
- 
-    req.body.forEach(async (q, index) => {
-      if (index !== 0) {
-        try {
-          await dao.addQuestion(s_id, q.qnum, q.qtext, q.open, q.optional, q.single);
-        }
-        catch (error) {
-          res.status(500).json(error);
-        }
+
+  req.body.forEach(async (q, index) => {
+    if (index !== 0) {
+      try {
+        await dao.addQuestion(s_id, q.qnum, q.qtext, q.open, q.optional, q.single);
       }
-    });
+      catch (error) {
+        res.status(500).json(error);
+      }
+    }
+  });
 
   res.end();
 });
 
 
 // this function receives a survey response (list of responses to all questions)
-//it scans all the responses in the list and add them one by one to the DB by calling dao.addResponse()
-// since the uqser can fill in the survey without logging in the LoggedIn check is not needed
+// it scans all the responses in the list and add them one by one to the DB by calling dao.addResponse()
+// since the user can fill in the survey without logging in the LoggedIn check is not needed
 app.post('/api/sendSurvey', async (req, res) => {
   //backend validation
-  if(req.body.length<0) 
+  if (req.body.length < 0)
     res.status(500).json("wrong or inconsostent Question format");
 
-  req.body.forEach((q, index)=>{
-    if(q.qnum<0 || !q.response || q.surveyid<0){
-    console.log(q);
-      res.status(500).json("wrong or inconsostent Question format");}
+  req.body.forEach((q, index) => {
+    if (q.qnum < 0 || !q.response || q.surveyid < 0) {
+      res.status(500).json("wrong or inconsostent Question format");
+    }
   });
 
   let n;
@@ -157,7 +169,7 @@ app.post('/api/sendSurvey', async (req, res) => {
     res.status(500).json(error);
   }
   n++;
- 
+
   req.body.forEach(async (q) => {
     //backend validation (even in case of no respose the response should be valid: an empty string)
     try {
@@ -172,16 +184,33 @@ app.post('/api/sendSurvey', async (req, res) => {
 });
 
 
-/*** User APIs ***/
-app.post('/api/sessions', passport.authenticate('local'), (req, res) => {
-  res.json(req.user);
+// POST /sessions 
+// login
+app.post('/api/sessions', function (req, res, next) {
+  passport.authenticate('local', (err, user, info) => {
+    if (err)
+      return next(err);
+    if (!user) {
+      // display wrong login messages
+      return res.status(401).json(info);
+    }
+    // success, perform the login
+    req.login(user, (err) => {
+      if (err)
+        return next(err);
+
+      // req.user contains the authenticated user, we send all the user info back
+      // this is coming from userDao.getUser()
+      return res.json(req.user);
+    });
+  })(req, res, next);
 });
 
 // GET /sessions/current
 // check whether the user is logged in or not
 app.get('/api/sessions/current_session', (req, res) => {
   if (req.isAuthenticated())
-    res.json(req.user);
+    res.status(200).json(req.user);
   else
     res.status(401).json({ error: 'Not authenticated' });
 });

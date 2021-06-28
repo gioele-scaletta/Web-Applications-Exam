@@ -10,6 +10,7 @@
     "context": "^1.1.4",
     "formik": "^2.2.9",
     "react": "^17.0.2",
+    "react-backdrop-filter": "^2.1.0",
     "react-bootstrap": "^1.6.1",
     "react-bootstrap-icons": "^1.5.0",
     "react-dom": "^17.0.2",
