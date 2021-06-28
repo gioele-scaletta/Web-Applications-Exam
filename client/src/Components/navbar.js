@@ -23,7 +23,7 @@ const NavBar = function (props) {
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse className="justify-content-end" id="basic-navbar-nav">
                     <Form  inline className="mr-2">
-                        <FormControl type="text" placeholder="Search" onChange={(ev) => props.filter(ev.target.value)} className="mr-sm-2 w-100" />
+                        <FormControl type="text" placeholder="Search" value={props.filterV} onChange={(ev) => props.filter(ev.target.value)} className="mr-sm-2 w-100" />
                     </Form>
                 </Navbar.Collapse>
 

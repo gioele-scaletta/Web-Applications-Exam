@@ -4,7 +4,6 @@ import Button from 'react-bootstrap/Button'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Row'
 import { Trash, PencilSquare, ArrowUp, ArrowDown } from 'react-bootstrap-icons'
-
 import { Link, Redirect} from 'react-router-dom';
 import {useState} from 'react'
 import Modal from 'react-bootstrap/Modal'
@@ -35,8 +34,6 @@ const CreateSurvey = function(props) {
     const addQuestion = async (text, ope, opt, sing) =>{
         let q;
 
-        console.log(text);
-
         if(ope)
             q={qnum: (modaln===-1) ? num : modaln, qtext: text, open: 1, optional: opt, single:''};
         else
@@ -52,7 +49,7 @@ const CreateSurvey = function(props) {
         
     }
     
-    //update list of questions in order to move the selected question down of one position
+    //update list of questions in order to move the selected question down of one position (only if valid request)
     const Up= (n)=> {
 
         if(n!==1)
@@ -66,7 +63,7 @@ const CreateSurvey = function(props) {
             );
     }
 
-    //update list of questions in order to move the selected question down of one position
+    //update list of questions in order to move the selected question down of one position (only if valid request)
     const Down= (n) =>{
 
         let max=questions.reduce((r,a)=>a.qnum>r.qnum ? a:r);
@@ -83,15 +80,12 @@ const CreateSurvey = function(props) {
     
     //delte question from list when delete icon clicked
     const handleDelete= function(n) {
-      
         setQuestions(oldAnswers => oldAnswers.filter((r)=>r.qnum!==n));
-    
     }
 
     //takes care of opening modal and setting previuos values in case of update icon clicked (the previous values are set using 2 states)
     const handleUpdate= function(type, init, n, opt, single) {
 
-        console.log(init+"|"+opt+"|"+single);
         if(type===2)
         setModal(init+"|"+opt+"|"+single);
         else
@@ -132,7 +126,7 @@ const CreateSurvey = function(props) {
 
     const handleShowForm = (open) =>{ setShowForm(open);}
 
-    return (
+    return ( //here we render already added questions + initial name question + modal for adding or updating questions (which will exploit AddOpenEnded and AddCloseEnded)
                 <>  
                     {submitted ? <Redirect to="/admin" /> :null}
                     <Row>
@@ -156,7 +150,7 @@ const CreateSurvey = function(props) {
                     <br></br><br></br><hr/>
                     {questions ? questions.sort((a,b) =>(a.qnum-b.qnum))
                         .map( (q) => q.open ?
-                            <> <br></br> <br></br>
+                            <> <br></br><br></br>
                                 <OpenAnswerForm key={q.qnum} id={q.qnum} question={q.qtext} optional={q.optional} response={"         "}/>
                                 
                                 <Container align="right" >
@@ -165,14 +159,13 @@ const CreateSurvey = function(props) {
                                 < PencilSquare color={iconcolor} className="m-3" size={20} onClick={()=>handleUpdate(1, q.qtext, q.qnum, q.optional, '')} />
                                 < Trash color={iconcolor} className="m-3" size={20} href="#" onClick={()=>handleDelete(q.qnum)} /> 
                                 </Container>
-                                <br></br>
-                                <br></br><hr/><br></br>
+                                <br></br><br></br><hr/><br></br>
 
                             </>
                             :
                             <> <br></br><br></br>
                                 
-                                    <CloseAnswerForm key={q.qnum} id={q.qnum} question={q.qtext} optional={q.optional} single={q.single} response={"0|0|0|0"}/>
+                                <CloseAnswerForm key={q.qnum} id={q.qnum} question={q.qtext} optional={q.optional} single={q.single} response={"0|0|0|0"}/>
                                 
                                 <Container align="right" >
                                 {q.qnum!==1 ? < ArrowUp color={iconcolor} className="m-3" size={20} onClick={()=>Up(q.qnum)} /> : null }
@@ -180,13 +173,12 @@ const CreateSurvey = function(props) {
                                 < PencilSquare color={iconcolor} className="m-3" size={20} onClick={()=>handleUpdate(2, q.qtext, q.qnum, q.optional, q.single)} />
                                 < Trash color={iconcolor} className="m-3" size={20} href="#" onClick={()=>handleDelete(q.qnum)} /> 
                                 </Container>
-                                <br></br>
-                                <br></br><hr/><br></br>
+                                <br></br><br></br><hr/><br></br>
                             </>
                         ) 
                     : null}
 
-                    <Modal show={showForm===1 || showForm===2}>
+                    <Modal show={showForm===1 || showForm===2} onHide={handleCloseForm}>
                         <Modal.Header >
                             <Modal.Title>Add new Question</Modal.Title>
                         </Modal.Header>
@@ -195,17 +187,14 @@ const CreateSurvey = function(props) {
                         </Modal.Body>
                     </Modal>
             
-                    <br></br>
-                    <br></br>
+                    <br></br> <br></br>
 
                     <Col align="left">
                         <Button variant="primary" style={{marginLeft: "10px" , marginRight:"35px",  border:0, outline:0}} className="w-25" size="sm" onClick={()=>handleShowForm(1)}>Add Open-ended question</Button> 
                         <Button variant="primary" style={{  border:0}} size="sm"   className="w-25" onClick={()=>handleShowForm(2)}>Add Closed-answer question</Button>
                     </Col>
 
-                    <br></br>
-                    <br></br>
-                    <br></br>
+                    <br></br> <br></br> <br></br>
                    
                     <Col align="right" className="bottom m-2">
                         <div style={{display: 'inline'}}>
@@ -213,15 +202,15 @@ const CreateSurvey = function(props) {
                             <Button style={{marginLeft:"30px"}} className="w-25" variant="dark" onClick={()=>handleSubmit()}> Submit survey </Button>
                         </div>
                     </Col>
-                    <br></br>
-        <br></br>
-           <br></br>
+                    <br></br><br></br><br></br>
                 </>
             );
     }
 
 
  function AddOpenEnded(props) {
+
+    //props.init is used to initialize the modal values in case we are updating an already existing question
 
     //question title
     const [text, setText] = useState(props.init.split("|")[0]);
@@ -230,7 +219,7 @@ const CreateSurvey = function(props) {
     //validatio
     const [missing, setMissing] = useState(false);
 
-    //on successful open question submit add question to survey list of question
+    //on successful open question submit add question to survey list of questions
     const ifSubmit = () => {
      
         if(text.length>0 && !text.isEmpty()){
@@ -242,7 +231,6 @@ const CreateSurvey = function(props) {
         }
  
     };
-
 
     return (<>
         <Form>
@@ -276,6 +264,8 @@ const CreateSurvey = function(props) {
 }
 
 function AddCloseEnded(props) {
+
+    //props.init is used to initialize the modal values in case we are updating an already existing question
 
     //Question title (only at the end merged with checkbox questions)
     const [text, setText] = useState(props.init.split("|")[0]);
@@ -356,7 +346,7 @@ function AddCloseEnded(props) {
                 }               
             </Form.Group>
                 {valMinMax ?
-                    <>
+                    <>     {/*Invalid*/}
                         <Form.Group>
                             <Form.Label>Min number of answers that can be selected</Form.Label>
                             <Form.Control type='text'  value={opt}  onChange={(ev)=>setOpt(ev.target.value)}  required isInvalid/>
@@ -371,7 +361,7 @@ function AddCloseEnded(props) {
                         </Form.Group>
                     </>
                 :
-                    <>
+                    <>      {/*Valid*/}
                        <Form.Group>
                             <Form.Label>Min number of answers that can be selected</Form.Label>
                             <Form.Control type='text'  value={opt}  onChange={(ev)=>setOpt(ev.target.value)} />
@@ -403,20 +393,22 @@ function AddCloseEnded(props) {
                     }
 
                 </Form.Group> : null}
+            
             {!showplus ? <Button onClick={() => append()}> Confirm checkbox text </Button> : null}
-            <br></br>
-            <br></br>
+
+            <br></br><br></br>
+
             <Form.Group controlId="exampleForm.ControlTextarea1">
+            
                 {checkboxtext ? checkboxtext.split('|').map((q) =>
-             <Form.Group  >
-                   <Trash color='#000000'  className="m-1" size={20}   onClick={() => handleDelete(q)} /> 
-                 <Form.Check className="m-3" style={{marginRight: '10'}}  inline checked={false} label={q}/>{'  '}{'    '}
-             
-               
-                  </Form.Group>
-                       
-                 
+
+                    <Form.Group>
+                        <Trash color='#000000'  className="m-1" size={20}   onClick={() => handleDelete(q)} /> 
+                        <Form.Check className="m-3" style={{marginRight: '10'}}  inline checked={false} label={q}/>{'  '}{'    '}   
+                    </Form.Group>
+                                
                 ) : null}
+
             </Form.Group>
         </Form>
 
@@ -424,8 +416,7 @@ function AddCloseEnded(props) {
             <Button className="m-3" variant='secondary' onClick={()=>props.handleCloseForm()}>Cancel</Button>        
             <Button className="m-3" type="submit" variant="dark" onClick={()=>ifSubmit()}> Save Question  </Button>  
         </div>
-    </>
-    )
+    </>)
 
 }
 

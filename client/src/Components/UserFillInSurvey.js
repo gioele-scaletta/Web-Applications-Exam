@@ -18,7 +18,8 @@ function UserFillInSurvey(props) {
     const [tried, setTried] = useState(false)
     const [firstRender, setFirstRender] = useState(true);
 
-    //UseEffect added in the end to reload the questions if the survey link is changed not using some app commands but by the link/broswer back forward button
+    //UseEffect added in the end to reload the questions if the survey link is changed not using some app commands but by the broswer back forward button (still not working when passing from user to admin survey with back forward btton but it is not required to have back forward button working)
+
     useEffect(() => {
         const newSurvey = async function () {
             props.reload(props.surveyid);
@@ -35,8 +36,8 @@ function UserFillInSurvey(props) {
 
     const addResponse = async (a, id) => {
         let q;
+        
         //VALIDATION!!
-
         //Retrieve question relative to reponse we are adding
         if (id === 0)
             q = { qnum: 0, qtext: "Please insert your name below", open: 1, optional: 1, single: '' };
@@ -110,7 +111,7 @@ function UserFillInSurvey(props) {
 
                 <OpenAnswerForm key={0} id={0} question={"Please insert your name below"} response={undefined} add={addResponse} error={error} optional={1} tried={tried} />
 
-                {props.questions.filter(q => q.qtext.toLowerCase().includes(props.filter ? props.filter.toLowerCase() : '')).sort((a, b) => (a.qnum < b.qnum) ? a : b).map((q) => q.open ?
+                {props.questions.filter(q => q.qtext.toLowerCase().includes(props.filter ? props.filter.toLowerCase() : '')).sort((a, b) => (a.qnum < b.qnum) ? a : b).map((q) => q.open ?  //filter questions using navbar search filter
                     <>
                         <OpenAnswerForm align="right" key={q.qnum} id={q.qnum} question={q.qtext} response={undefined} add={addResponse} error={error} optional={q.optional} tried={tried} />
                     </>
@@ -121,13 +122,12 @@ function UserFillInSurvey(props) {
 
                 )}
 
+        {/* validation message showed when user tried tosubmit but at leat one question wasn't respectiong constraints */}
             </Col>{error ? (tried && error.reduce((a, b) => parseInt(a) + parseInt(b), 0) > 0) ? <Alert variant='danger'>Sorry! there is something wrong with at least one of your answers please check them!</Alert> : <br></br> : <br></br>}
             <Col align="right" className="bottom m-5">
                 <Link to="/allsurveys"> <Button className="w-25" variant='secondary'> Cancel </Button></Link>
                 <Button variant="dark" style={{ marginLeft: "30px" }} className=" w-25" onClick={handleSubmit}> Submit</Button>
             </Col>
-
-
 
             <br></br>
             <br></br>

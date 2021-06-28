@@ -32,11 +32,15 @@ function App() {
 
   //QUESTIONS: loaded both when user wants to fill in a survey and when admin wants to see responses
   const [Questions, setQuestions] = useState([]);
-  const [questionssurveyid, setQuestionssurveyid] = useState((!window.location.pathname.includes('/allsurveys/fillinsurvey/') && !window.location.pathname.includes('/admin/surveyresults/')) ? undefined : parseInt(window.location.pathname.split('/')[3]));// when page reloaded triggers retrieval of questions for a specific survey
+  const [questionssurveyid, setQuestionssurveyid] = useState((!window.location.pathname.includes('/allsurveys/fillinsurvey/') && !window.location.pathname.includes('/admin/surveyresults/')) ? undefined : parseInt(window.location.pathname.split('/')[3]));
+  // when page reloaded triggers retrieval of questions for a specific survey
+  // In this way a survey could be shared by users even only using the URL
 
   //RESPONSES: responses for a specific survey (loaded when an admin wants to check reposnses for one of his survey)
   const [Responses, setResponses] = useState([]);
   const [answerssurveyid, setAnswerssurveyid] = useState(!window.location.pathname.includes('/admin/surveyresults/') ? undefined : parseInt(window.location.pathname.split('/')[3]));
+  // when page reloaded triggers retrieval of answers for a specific survey
+  // In this way an admin can recharge the page while still keeping survey info
 
   //states for storing admin info
   const [admin, setAdmin] = useState();
@@ -135,6 +139,12 @@ function App() {
     }, 2000)
   }, [loginmessage]);
 
+  //need this useEffect to reset navbar state when we change page (otherwise we filter components in next page)
+  //for example could be a proble when goign from UserSurveyList to UserFillInSurvey
+  useEffect(()=>{
+    setNavfilter('');
+  }, [questionssurveyid, updateSubmittedSurveys, updateSurveysToComplete])
+
 
   //Login and Logout methods
   const doLogin = async (credentials) => {
@@ -155,11 +165,9 @@ function App() {
     if (logout) {
       setAdmin(undefined);
       setId(undefined);
-      setQuestions([]);
       setResponses([]);
       setSubmittedSurveys([]);
     }
-
   }
 
   //Method used to trigger POST of new survey added by admiin
@@ -226,7 +234,7 @@ function App() {
 
         <Row className="ml-5 p-0">
           <Col className="m-0 p-0">
-            <NavBar filter={filterCards} logout={doLogout} logged={admin} login={doLogin} />
+            <NavBar filter={filterCards} logout={doLogout} filterV={navfilter} logged={admin} login={doLogin} />
           </Col>
         </Row>
 
@@ -317,7 +325,6 @@ function App() {
                     </Col>
                   </Container>
                 </>
-
               }
             />
 

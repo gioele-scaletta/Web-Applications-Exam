@@ -16,7 +16,7 @@ const AdminSurvey = function (props) {
     const [warning, setWarning] = useState(false);
     const [firstRender, setFirstRender] = useState(true);
 
-    //UseEffect added in the end to reload the questions if the survey link is changed not using some app commands but by the link/ broswer back forward button
+    //UseEffect added in the end to reload the questions if the survey link is changed not using some app commands but with the broswer back forward button (not working when passing from user to admin surveys but it is not required to have back forward button working)
     useEffect(() => {
         const newSurvey = async function () {
             props.reload(props.surveyid);
@@ -83,6 +83,7 @@ const AdminSurvey = function (props) {
 
             <Button className="m-2" onClick={next}>Next Survey</Button>
 
+            {/*if next or previous buttons pressed but there are no following/previous users*/}
             {warning === 2 ? <Alert variant="danger">The Answers are finished</Alert> :
                 warning === 1 ? <Alert variant="danger">This is the first answer</Alert> :
                     <><br></br><br></br><br></br></>}
