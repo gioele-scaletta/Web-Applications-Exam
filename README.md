@@ -1,6 +1,6 @@
 # Exam #1: "Survey"
 
-# ![Exam assignment](https://elite.polito.it/files/courses/01TXYOV/2021/exam/WA1_exam1_survey_FINAL.pdf)
+# [Exam assignment](https://elite.polito.it/files/courses/01TXYOV/2021/exam/WA1_exam1_survey_FINAL.pdf)
 
 ## Student: s284100 SCALETTA GIOELE
 
